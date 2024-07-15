@@ -1,0 +1,11 @@
+#login-body {
+  display: flex;
+  justify-content: center;
+  background-color: #990000;
+  height: 500px
+}
+
+#user-login {
+  display: inline-block;
+  background-color: white;
+}
