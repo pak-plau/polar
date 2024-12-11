@@ -16,7 +16,7 @@ const Home = () => {
               fontWeight: 'bold',
           }}
         >
-          Home
+          Records
         </Typography>
       </Box>
 

@@ -1,25 +1,66 @@
-import React from "react";
+import React from 'react';
+import { TextField, Button, Box, Typography } from '@mui/material';
 
-export default class Login extends React.Component {
-  render() {
-    return (
-      <div id="login">
-        <div id="login-header">
-          <h1>POLAR UNIVERSITY</h1>
-        </div>
-        <div id="login-body">
-          <form id="login-form">
-            <h2>LOGIN</h2>
-            <label for="login-user">Username</label>
-            <input type="text" id="login-user" name="user"></input>
-            <label for="login-pass">Password</label>
-            <input type="password" id="login-pass" name="pass"></input>
-            <div>
-              <button id="login-button">Sign In</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    );
-  }
-}
+const Login = () => {
+  return (
+    <Box
+      sx={{
+        height: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#800000',
+      }}
+    >
+      <Box
+        sx={{
+          textAlign: 'center',
+          mb: 4,
+        }}
+      >
+        <Typography
+          variant="h2"
+          sx={{
+              color: 'white',
+              fontWeight: 'bold',
+          }}
+        >
+          POLAR UNIVERSITY
+        </Typography>
+      </Box>
+      <Box
+        sx={{
+          maxWidth: '600px',
+          backgroundColor: 'white',
+          padding: 8,
+          borderRadius: 2,
+        }}
+      >
+        <Typography
+          variant="h4"
+          sx={{
+            textAlign: 'center',
+            marginBottom: 2,
+            fontWeight: 'bold'
+          }}
+        >
+          LOGIN
+        </Typography>
+        <TextField label="Username" variant="outlined" fullWidth margin="normal" />
+        <TextField label="Password" variant="outlined" fullWidth type="password" margin="normal" />
+        <Button variant="contained" fullWidth 
+          sx={{ 
+            backgroundColor: 'gray', 
+            marginTop: 2,
+            height: "56px",
+          }}
+        >
+          Sign In
+        </Button>
+      </Box>
+    </Box>
+  );
+};
+
+export default Login;
