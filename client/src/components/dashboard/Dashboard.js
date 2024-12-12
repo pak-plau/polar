@@ -4,15 +4,18 @@ import { Link } from 'react-router-dom'
 
 const Dashboard = () => {
   return (
-    <Box>
+    <Box
+      sx={{
+        height: "13vh"
+      }}
+    >
       <Box 
         sx={{
           display: 'flex',
+          height: "7vh",
           justifyContent: 'flex-start',
           alignItems: 'center',
-          backgroundColor: 'white',
           color: 'black',
-          padding: '10px',
           position: 'relative',
         }}
       >
@@ -37,13 +40,12 @@ const Dashboard = () => {
           sx={{
             height: '40px',
             backgroundColor: 'gray',
-            color: 'black',
-            fontWeight: 'bold',
-            fontSize: '18px',
-            lineHeight: '40px',
-            padding: '0 16px',
             borderRadius: '4px',
             marginLeft: 'auto',
+            marginRight: '1vw',
+            '&:hover': {
+              backgroundColor: '#646464'
+            }
           }}
           onClick={() => alert('Logging out')}
         >
@@ -54,28 +56,65 @@ const Dashboard = () => {
         sx={{
           display: 'flex',
           justifyContent: 'center',
+          height: "6.5vh",
           gap: "30px",
           alignItems: 'center',
           backgroundColor: '#800000',
         }}
       >
         <Link to="/home" style={{ textDecoration: 'none' }}>
-          <Button sx={{ color: 'white', fontSize: '25px' }}>
+          <Button 
+            sx={{
+              color: 'white',
+              fontSize: '25px',
+              '&:hover': {
+                backgroundColor: '#6b0000',
+                transform: 'none',
+              },
+            }}
+          >
             HOME
           </Button>
         </Link>
         <Link to="/registration" style={{ textDecoration: 'none' }}>
-          <Button sx={{ color: 'white', fontSize: '25px' }}>
+        <Button 
+            sx={{
+              color: 'white',
+              fontSize: '25px',
+              '&:hover': {
+                backgroundColor: '#6b0000',
+                transform: 'none',
+              },
+            }}
+          >
             REGISTRATION
           </Button>
         </Link>
         <Link to="/records" style={{ textDecoration: 'none' }}>
-          <Button sx={{ color: 'white', fontSize: '25px' }}>
+        <Button 
+            sx={{
+              color: 'white',
+              fontSize: '25px',
+              '&:hover': {
+                backgroundColor: '#6b0000',
+                transform: 'none',
+              },
+            }}
+          >
             STUDENT RECORDS
           </Button>
         </Link>
         <Link to="/employment" style={{ textDecoration: 'none' }}>
-          <Button sx={{ color: 'white', fontSize: '25px' }}>
+        <Button 
+            sx={{
+              color: 'white',
+              fontSize: '25px',
+              '&:hover': {
+                backgroundColor: '#6b0000',
+                transform: 'none',
+              },
+            }}
+          >
             EMPLOYMENT SERVICES
           </Button>
         </Link>

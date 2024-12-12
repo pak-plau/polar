@@ -6,12 +6,13 @@ import Home from "./components/home/Home";
 import Registration from "./components/registration/Registration"
 import Records from "./components/records/Records"
 import Employment from "./components/employment/Employment"
+import { Box } from "@mui/material";
 
 function App() {
   const location = useLocation();
   const hideNavPaths = ["/"];
   return (
-    <>
+    <Box>
       {!hideNavPaths.includes(location.pathname) && <Dashboard />}
       <Routes>
         <Route path="/" element={<Login />} />
@@ -20,7 +21,7 @@ function App() {
         <Route path="/records" element={<Records />} />
         <Route path="/employment" element={<Employment />} />
       </Routes>
-    </>
+    </Box>
   );
 }
 
