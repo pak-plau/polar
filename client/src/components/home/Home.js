@@ -14,7 +14,7 @@ const Home = () => {
         flexDirection: "column",
         gap: 2,
         padding: "2vh 0vh",
-        overflowY: "100%",
+        overflowY: "auto",
       }}
     >
       <Card
