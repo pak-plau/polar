@@ -36,10 +36,10 @@ const Dashboard = () => {
           </Typography>
         </Link>
         <Button
-          variant="contained"
           sx={{
             height: '40px',
             backgroundColor: 'gray',
+            color: 'white',
             borderRadius: '4px',
             marginLeft: 'auto',
             marginRight: '1vw',
@@ -56,33 +56,34 @@ const Dashboard = () => {
         sx={{
           display: 'flex',
           justifyContent: 'center',
-          height: "6.5vh",
+          height: "6vh",
           gap: "30px",
           alignItems: 'center',
           backgroundColor: '#800000',
         }}
       >
-        <Link to="/home" style={{ textDecoration: 'none' }}>
+        <Link to="/home" style={{ textDecoration: 'none', display: 'flex', height: '100%'}}>
           <Button 
             sx={{
               color: 'white',
               fontSize: '25px',
               '&:hover': {
-                backgroundColor: '#6b0000',
+                backgroundColor: '#470000',
                 transform: 'none',
               },
+              height: '100%',
             }}
           >
             HOME
           </Button>
         </Link>
-        <Link to="/registration" style={{ textDecoration: 'none' }}>
+        <Link to="/registration" style={{ textDecoration: 'none', display: 'flex', height: '100%' }}>
         <Button 
             sx={{
               color: 'white',
               fontSize: '25px',
               '&:hover': {
-                backgroundColor: '#6b0000',
+                backgroundColor: '#470000',
                 transform: 'none',
               },
             }}
@@ -90,13 +91,13 @@ const Dashboard = () => {
             REGISTRATION
           </Button>
         </Link>
-        <Link to="/records" style={{ textDecoration: 'none' }}>
+        <Link to="/records" style={{ textDecoration: 'none', display: 'flex', height: '100%' }}>
         <Button 
             sx={{
               color: 'white',
               fontSize: '25px',
               '&:hover': {
-                backgroundColor: '#6b0000',
+                backgroundColor: '#470000',
                 transform: 'none',
               },
             }}
@@ -104,13 +105,13 @@ const Dashboard = () => {
             STUDENT RECORDS
           </Button>
         </Link>
-        <Link to="/employment" style={{ textDecoration: 'none' }}>
+        <Link to="/employment" style={{ textDecoration: 'none', display: 'flex', height: '100%' }}>
         <Button 
             sx={{
               color: 'white',
               fontSize: '25px',
               '&:hover': {
-                backgroundColor: '#6b0000',
+                backgroundColor: '#470000',
                 transform: 'none',
               },
             }}
