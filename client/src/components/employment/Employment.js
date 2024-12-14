@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DataGrid } from '@mui/x-data-grid';
-import { Typography, Card, Box, CardContent, Button, Dialog, DialogTitle, DialogActions, DialogContent, TextField } from '@mui/material';
+import { Typography, Card, Box, CardContent, Button, Dialog, DialogTitle, DialogActions, DialogContent } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -20,7 +20,60 @@ const Employment = () => {
   const [dateError, setDateError] = useState(false);
   const [timeInError, setTimeInError] = useState(false);
   const [timeOutError, setTimeOutError] = useState(false);
-  const [timeOutBefore, setTimeOutBefore] = useState(false); // New state for Time Out error message
+  const [timeOutBefore, setTimeOutBefore] = useState(false);
+  const columns = [
+    { field: 'date', headerName: 'Date', flex: 2 },
+    { field: 'timeIn', headerName: 'Time In', flex: 2 },
+    { field: 'timeOut', headerName: 'Time Out', flex: 2 },
+    { field: 'hours', headerName: 'Hours', flex: 1, type: 'number', align: 'center', headerAlign: 'center' },
+    { field: 'status', headerName: 'Status', flex: 1, align: 'center', headerAlign: 'center' },
+    {
+      field: 'delete',
+      headerName: '',
+      flex: 1,
+      renderCell: (params) => {
+        if (params.id === 'add') {
+          return (
+            <Button
+              onClick={openAdd}
+              sx={{
+                backgroundColor: '#800000',
+                color: 'white',
+                padding: 1,
+                minWidth: 'auto',
+                width: 36,
+                height: 36,
+                '&:hover': {
+                  backgroundColor: '#470000',
+                },
+              }}
+            >
+              <AddIcon />
+            </Button>
+          );
+        }
+        return (
+          <Button
+            onClick={() => handleDeleteRow(params.id)}
+            sx={{
+              backgroundColor: '#800000',
+              color: 'white',
+              fontWeight: 'bold',
+              padding: 1,
+              minWidth: 'auto',
+              width: 36,
+              height: 36,
+              '&:hover': {
+                backgroundColor: '#470000',
+              },
+            }}
+          >
+            <DeleteIcon fontSize="small" />
+          </Button>
+        );
+      },
+    },
+  ];
 
   const openAdd = () => {
     setAddOpened(true);
@@ -38,17 +91,14 @@ const Employment = () => {
 
   const handleDateError = (error) => {
     setDateError(error);
-    console.log(error);
   };
 
   const handleTimeInError = (error) => {
     setTimeInError(error);
-    console.log(error);
   };
 
   const handleTimeOutError = (error) => {
     setTimeOutError(error);
-    console.log(error);
   };
 
   // New function to validate if timeOut is after timeIn
@@ -57,7 +107,7 @@ const Employment = () => {
   };
 
   // This will run whenever timeOut or timeIn changes
-  React.useEffect(() => {
+  useEffect(() => {
     validateTimeOut(timeIn, timeOut);
   }, [timeIn, timeOut]);
 
@@ -127,67 +177,9 @@ const Employment = () => {
     }));
   };
 
-  const columns = [
-    { field: 'date', headerName: 'Date', flex: 2 },
-    { field: 'timeIn', headerName: 'Time In', flex: 2 },
-    { field: 'timeOut', headerName: 'Time Out', flex: 2 },
-    { field: 'hours', headerName: 'Hours', flex: 1, type: 'number', align: 'center', headerAlign: 'center' },
-    { field: 'status', headerName: 'Status', flex: 1, align: 'center', headerAlign: 'center' },
-    {
-      field: 'delete',
-      headerName: '',
-      flex: 1,
-      renderCell: (params) => {
-        if (params.id === 'add') {
-          return (
-            <Button
-              onClick={openAdd}
-              sx={{
-                backgroundColor: '#800000',
-                color: 'white',
-                padding: 1,
-                minWidth: 'auto',
-                width: 36,
-                height: 36,
-                '&:hover': {
-                  backgroundColor: '#470000',
-                },
-              }}
-            >
-              <AddIcon />
-            </Button>
-          );
-        }
-        return (
-          <Button
-            onClick={() => handleDeleteRow(params.id)}
-            sx={{
-              backgroundColor: '#800000',
-              color: 'white',
-              fontWeight: 'bold',
-              padding: 1,
-              minWidth: 'auto',
-              width: 36,
-              height: 36,
-              '&:hover': {
-                backgroundColor: '#470000',
-              },
-            }}
-          >
-            <DeleteIcon fontSize="small" />
-          </Button>
-        );
-      },
-    },
-  ];
-
   const handleDeleteRow = (id) => {
     setRows((prevRows) => {
-      const rowIndex = prevRows.findIndex((row) => row.id === id);
-      if (rowIndex > -1) {
-        prevRows.splice(rowIndex, 1); // Remove the element from the array
-      }
-      return [...prevRows]; // Return a new array to trigger a state update
+      return prevRows.filter((row) => row.id !== id);
     });
   };
 
@@ -278,6 +270,7 @@ const Employment = () => {
               Total Hours: {totalHours.toFixed(2)}
             </Typography>
             <Button
+              onClick={() => console.log(rows)}
               variant="contained"
               color="primary"
               sx={{
