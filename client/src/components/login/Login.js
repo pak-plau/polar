@@ -33,7 +33,10 @@ const Login = () => {
         sx={{
           maxWidth: '600px',
           backgroundColor: 'white',
-          padding: 8,
+          paddingTop: 6,
+          paddingBottom: 8,
+          paddingLeft: 8,
+          paddingRight: 8,
           borderRadius: 2,
         }}
       >
@@ -41,8 +44,7 @@ const Login = () => {
           variant="h4"
           sx={{
             textAlign: 'center',
-            marginBottom: 2,
-            fontWeight: 'bold'
+            fontWeight: 'bold',
           }}
         >
           LOGIN

@@ -198,8 +198,7 @@ const Employment = () => {
     dateIn.setMinutes(timeIn.getMinutes());
     dateOut.setHours(timeOut.getHours());
     dateOut.setMinutes(timeOut.getMinutes());
-    console.log(dateIn);
-    console.log(dateOut);
+    setRows((prevRows) => [...prevRows, { id: prevRows.length, timeIn: dateIn, timeOut: dateOut, status: '' }])
   };
 
   const totalHours = rows
@@ -303,10 +302,10 @@ const Employment = () => {
               value={date}
               onChange={(newValue) => setDate(newValue)}
               onError={(error) => handleDateError(error)}
-              renderInput={(params) => <TextField {...params} variant="outlined" />}
               sx={{ marginTop: 2 }}
               slotProps={{
                 textField: {
+                  variant: 'outlined',
                   helperText: dateErrorMessage,
                 },
               }}
@@ -316,10 +315,10 @@ const Employment = () => {
               value={timeIn}
               onChange={(newValue) => setTimeIn(newValue)}
               minutesStep={15}
-              renderInput={(params) => <TextField {...params} variant="outlined" />}
               onError={(newError) => handleTimeInError(newError)}
               slotProps={{
                 textField: {
+                  variant: 'outlined',
                   helperText: timeInErrorMessage,
                 },
               }}
@@ -329,10 +328,10 @@ const Employment = () => {
               value={timeOut}
               onChange={(newValue) => setTimeOut(newValue)}
               minutesStep={15}
-              renderInput={(params) => <TextField {...params} variant="outlined" />}
               onError={(newError) => handleTimeOutError(newError)}
               slotProps={{
                 textField: {
+                  variant: 'outlined',
                   helperText: timeOutErrorMessage,
                 },
               }}
