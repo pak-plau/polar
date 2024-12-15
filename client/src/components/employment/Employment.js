@@ -68,7 +68,7 @@ const Employment = () => {
               },
             }}
           >
-            <DeleteIcon fontSize="small" />
+            <DeleteIcon />
           </Button>
         );
       },
@@ -259,14 +259,13 @@ const Employment = () => {
             sx={{
               display: 'flex',
               flexDirection: 'column',
-              justifyContent: 'flex-end',
               alignItems: 'flex-end',
               gap: 2,
-              marginTop: 2,
+              mt: 2,
               width: '100%',
             }}
           >
-            <Typography variant="body1" component="div" gutterBottom>
+            <Typography variant="body1">
               Total Hours: {totalHours.toFixed(2)}
             </Typography>
             <Button
@@ -295,7 +294,7 @@ const Employment = () => {
               value={date}
               onChange={(newValue) => setDate(newValue)}
               onError={(error) => handleDateError(error)}
-              sx={{ marginTop: 2 }}
+              sx={{ mt: 2 }}
               slotProps={{
                 textField: {
                   variant: 'outlined',

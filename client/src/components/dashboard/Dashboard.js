@@ -13,7 +13,7 @@ const Dashboard = () => {
         sx={{
           display: 'flex',
           height: "7vh",
-          justifyContent: 'flex-start',
+          justifyContent: 'flex-end',
           alignItems: 'center',
           color: 'black',
           position: 'relative',
@@ -35,22 +35,21 @@ const Dashboard = () => {
             POLAR UNIVERSITY
           </Typography>
         </Link>
-        <Button
-          sx={{
-            height: '40px',
-            backgroundColor: 'gray',
-            color: 'white',
-            borderRadius: '4px',
-            marginLeft: 'auto',
-            marginRight: '1vw',
-            '&:hover': {
-              backgroundColor: '#646464'
-            }
-          }}
-          onClick={() => alert('Logging out')}
-        >
-          Log Out
-        </Button>
+        <Link to="/" style={{ textDecoration: 'none', mr: '1vw', height: '40px'}}>
+          <Button
+            sx={{
+              height: '100%',
+              backgroundColor: 'gray',
+              color: 'white',
+              borderRadius: '4px',
+              '&:hover': {
+                backgroundColor: '#646464'
+              }
+            }}
+          >
+            Log Out
+          </Button>
+        </Link>
       </Box>
       <Box 
         sx={{

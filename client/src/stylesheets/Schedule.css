@@ -5,3 +5,7 @@
 .rbc-event-label {
     display: none !important;
 }
+
+.rbc-allday-cell {
+    display: none !important;
+}

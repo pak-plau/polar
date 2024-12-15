@@ -54,7 +54,7 @@ const Login = () => {
         <Button variant="contained" fullWidth 
           sx={{ 
             backgroundColor: 'gray', 
-            marginTop: 2,
+            mt: 2,
             height: "56px",
           }}
         >
