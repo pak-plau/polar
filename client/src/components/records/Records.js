@@ -47,7 +47,6 @@ const Records = () => {
             variant="outlined"
             fullWidth
             sx={{
-              justifyContent: "flex-start",
               color: "black",
               borderColor: "lightgray",
               mb: 1,
@@ -59,10 +58,10 @@ const Records = () => {
             variant="contained"
             fullWidth
             sx={{
-              backgroundColor: "lightgray",
-              color: "black",
+              backgroundColor: "gray",
+              color: "white",
               '&:hover': {
-                backgroundColor: "darkgray",
+                backgroundColor: "#646464",
               },
             }}
           >

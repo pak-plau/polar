@@ -9,3 +9,9 @@
 .rbc-allday-cell {
     display: none !important;
 }
+
+.rbc-event {
+    background-color: #800000 !important;
+    border-radius: 0 !important;
+    border-width: 0 !important;
+}

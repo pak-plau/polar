@@ -32,7 +32,6 @@ const Registration = () => {
   const handleAddRow = (id) => {
     const selectedClass = searchRows.find((row) => row.id === id);
 
-    // Check for conflicts
     const conflict = cartRows.find((cartRow) =>
       selectedClass.days.split('').some((day) =>
         cartRow.days.includes(day) &&
@@ -191,13 +190,23 @@ const Registration = () => {
       </Card>
       <Dialog open={dialogOpen} onClose={handleDialogClose}>
         <DialogTitle sx={{ backgroundColor: '#800000', color: 'white' }}>Time Conflict</DialogTitle>
-        <DialogContent sx={{ display: 'flex', flexDirection: 'column'}}>
+        <DialogContent sx={{ display: 'flex', flexDirection: 'column' }}>
           <DialogContentText sx={{ mt: 2 }}>
             The class you're trying to add conflicts with: {conflictClass?.class} {conflictClass?.code}-{conflictClass?.section}.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleDialogClose} color="primary">
+          <Button 
+            onClick={handleDialogClose}
+            color="primary"
+            sx={{
+              backgroundColor: 'gray',
+              color: 'white',
+              '&:hover': {
+                backgroundColor: '#646464',
+              },
+            }}
+          >
             Close
           </Button>
         </DialogActions>

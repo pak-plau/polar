@@ -101,12 +101,10 @@ const Employment = () => {
     setTimeOutError(error);
   };
 
-  // New function to validate if timeOut is after timeIn
   const validateTimeOut = (timeIn, timeOut) => {
     setTimeOutBefore(timeIn && timeOut && timeOut <= timeIn);
   };
 
-  // This will run whenever timeOut or timeIn changes
   useEffect(() => {
     validateTimeOut(timeIn, timeOut);
   }, [timeIn, timeOut]);
@@ -197,7 +195,6 @@ const Employment = () => {
     .filter((row) => row.id !== 'add')
     .reduce((total, row) => total + calculateHours(row.timeIn, row.timeOut), 0);
 
-  // Validation for the Add button: date, timeIn, and timeOut must be valid
   const isAddDisabled = !date || !timeIn || !timeOut || timeOut <= timeIn || dateError || timeInError || timeOutError;
 
   return (
@@ -336,7 +333,18 @@ const Employment = () => {
           </LocalizationProvider>
         </DialogContent>
         <DialogActions>
-          <Button onClick={closeAdd}>Close</Button>
+          <Button
+            onClick={closeAdd}
+            sx={{
+              backgroundColor: 'gray',
+              color: 'white',
+              '&:hover': {
+                backgroundColor: '#646464',
+              },
+            }}
+          >
+            Close
+          </Button>
           <Button
             onClick={() => {
               handleAddRow(date, timeIn, timeOut);
@@ -346,6 +354,13 @@ const Employment = () => {
               closeAdd();
             }}
             disabled={isAddDisabled}
+            sx={{
+              backgroundColor: isAddDisabled ? 'white' : '#800000',
+              color: 'white',
+              '&:hover': {
+                backgroundColor: '#470000',
+              },
+            }}
           >
             Add
           </Button>

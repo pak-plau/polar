@@ -1,15 +1,15 @@
 import React from 'react';
 import { Box, Typography, Button } from '@mui/material';
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router-dom';
 
 const Dashboard = () => {
   return (
     <Box
       sx={{
-        height: "13vh"
+        height: "13vh",
       }}
     >
-      <Box 
+      <Box
         sx={{
           display: 'flex',
           height: "7vh",
@@ -35,23 +35,24 @@ const Dashboard = () => {
             POLAR UNIVERSITY
           </Typography>
         </Link>
-        <Link to="/" style={{ textDecoration: 'none', mr: '1vw', height: '40px'}}>
+        <Link to="/" style={{ textDecoration: 'none' }}>
           <Button
             sx={{
-              height: '100%',
+              height: '40px',
               backgroundColor: 'gray',
               color: 'white',
               borderRadius: '4px',
               '&:hover': {
-                backgroundColor: '#646464'
-              }
+                backgroundColor: '#646464',
+              },
+              mr: '1vw',
             }}
           >
             Log Out
           </Button>
         </Link>
       </Box>
-      <Box 
+      <Box
         sx={{
           display: 'flex',
           justifyContent: 'center',
@@ -61,14 +62,13 @@ const Dashboard = () => {
           backgroundColor: '#800000',
         }}
       >
-        <Link to="/home" style={{ textDecoration: 'none', display: 'flex', height: '100%'}}>
-          <Button 
+        <Link to="/home" style={{ textDecoration: 'none', display: 'flex', height: '100%' }}>
+          <Button
             sx={{
               color: 'white',
               fontSize: '25px',
               '&:hover': {
                 backgroundColor: '#470000',
-                transform: 'none',
               },
               height: '100%',
             }}
@@ -77,13 +77,12 @@ const Dashboard = () => {
           </Button>
         </Link>
         <Link to="/registration" style={{ textDecoration: 'none', display: 'flex', height: '100%' }}>
-        <Button 
+          <Button
             sx={{
               color: 'white',
               fontSize: '25px',
               '&:hover': {
                 backgroundColor: '#470000',
-                transform: 'none',
               },
             }}
           >
@@ -91,13 +90,12 @@ const Dashboard = () => {
           </Button>
         </Link>
         <Link to="/records" style={{ textDecoration: 'none', display: 'flex', height: '100%' }}>
-        <Button 
+          <Button
             sx={{
               color: 'white',
               fontSize: '25px',
               '&:hover': {
                 backgroundColor: '#470000',
-                transform: 'none',
               },
             }}
           >
@@ -105,13 +103,12 @@ const Dashboard = () => {
           </Button>
         </Link>
         <Link to="/employment" style={{ textDecoration: 'none', display: 'flex', height: '100%' }}>
-        <Button 
+          <Button
             sx={{
               color: 'white',
               fontSize: '25px',
               '&:hover': {
                 backgroundColor: '#470000',
-                transform: 'none',
               },
             }}
           >
@@ -121,6 +118,6 @@ const Dashboard = () => {
       </Box>
     </Box>
   );
-}
+};
 
 export default Dashboard;
