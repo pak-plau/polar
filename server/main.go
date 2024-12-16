@@ -7,6 +7,7 @@ import (
 )
 
 func main() {
+	connectMongoDB()
 	mux := http.NewServeMux()
 	mux.HandleFunc("/login", handleLogin)
 	fmt.Println("Starting server at port 8080")
