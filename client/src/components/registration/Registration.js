@@ -11,17 +11,13 @@ const formatter = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2
 
 const Registration = () => {
   const [cartRows, setCartRows] = useState([
-    { id: 1, class: 'CSE', code: '316', section: '01', days: 'TR', timeStart: new Date(2024, 11, 2, 11), timeEnd: new Date(2024, 11, 2, 12, 20), room: 'JLC 102', instructor: 'Christopher Kane', credits: 3.0 },
-    { id: 2, class: 'CSE', code: '320', section: '01', days: 'TR', timeStart: new Date(2024, 11, 2, 17, 30), timeEnd: new Date(2024, 11, 2, 18, 50), room: 'JLC 110', instructor: 'Howard Stark', credits: 3.0 },
-    { id: 3, class: 'CSE', code: '385', section: '01', days: 'MWF', timeStart: new Date(2024, 11, 2, 13), timeEnd: new Date(2024, 11, 2, 13, 55), room: 'NCS 220', instructor: 'Michael Bender', credits: 3.0 },
+    { id: 1, class: 'CSE', code: '316', section: '01', days: 'TR', timeStart: new Date(2003, 0, 30, 11), timeEnd: new Date(2003, 0, 30, 12, 20), room: 'JLC 102', instructor: 'Christopher Kane', credits: 3.0 },
+    { id: 2, class: 'CSE', code: '320', section: '01', days: 'TR', timeStart: new Date(2003, 0, 30, 17, 30), timeEnd: new Date(2003, 0, 30, 18, 50), room: 'JLC 110', instructor: 'Howard Stark', credits: 3.0 },
+    { id: 3, class: 'CSE', code: '385', section: '01', days: 'MWF', timeStart: new Date(2003, 0, 30, 13), timeEnd: new Date(2003, 0, 30, 13, 55), room: 'NCS 220', instructor: 'Michael Bender', credits: 3.0 },
   ]);
 
-  const [searchRows, setSearchRows] = useState([
-    { id: 4, class: 'CSE', code: '310', section: '01', days: 'MW', timeStart: new Date(2024, 11, 2, 16), timeEnd: new Date(2024, 11, 2, 17, 20), room: 'HUM 1003', instructor: 'Shubham Jain', credits: 3.0 },
-    { id: 5, class: 'CSE', code: '385', section: '01', days: 'TR', timeStart: new Date(2024, 11, 2, 17, 30), timeEnd: new Date(2024, 11, 2, 18, 50), room: 'JLC 110', instructor: 'Howard Stark', credits: 3.0 },
-    { id: 6, class: 'CSE', code: '320', section: '01', days: 'MWF', timeStart: new Date(2024, 11, 2, 13), timeEnd: new Date(2024, 11, 2, 13, 55), room: 'NCS 220', instructor: 'Michael Bender', credits: 3.0 },
-  ]);
-
+  const [searchRows, setSearchRows] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [conflictClass, setConflictClass] = useState(null);
 
@@ -31,7 +27,6 @@ const Registration = () => {
 
   const handleAddRow = (id) => {
     const selectedClass = searchRows.find((row) => row.id === id);
-
     const conflict = cartRows.find((cartRow) =>
       selectedClass.days.split('').some((day) =>
         cartRow.days.includes(day) &&
@@ -40,14 +35,13 @@ const Registration = () => {
           (selectedClass.timeStart <= cartRow.timeStart && selectedClass.timeEnd >= cartRow.timeEnd))
       )
     );
-
     if (conflict) {
       setConflictClass(conflict);
       setDialogOpen(true);
     } else {
       setCartRows((prevRows) => [...prevRows, selectedClass]);
     }
-  };
+  };  
 
   const handleDialogClose = () => {
     setDialogOpen(false);
@@ -72,6 +66,42 @@ const Registration = () => {
     }));
   };
 
+  const handleSearchKeyPress = async (event) => {
+    if (event.key === 'Enter' && searchQuery.length > 0) {
+      try {
+        setSearchRows([]);
+        const response = await fetch('http://localhost:8080/search', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ query: searchQuery }),
+        });
+        if (response.ok) {
+          const data = await response.json();
+          const processedData = data.map(item => {
+            if (Array.isArray(item.class)) {
+              item.class = item.class.join('/');
+            }
+            if (item.timeStart) {
+              item.timeStart = new Date(item.timeStart);
+            }
+            if (item.timeEnd) {
+              item.timeEnd = new Date(item.timeEnd);
+            }
+            return item;
+          });
+          console.log(processedData);
+          setSearchRows(processedData);
+        } else {
+          console.error('Search request failed:', response.statusText);
+        }
+      } catch (error) {
+        console.error('Error during search request:', error);
+      }
+    }
+  };  
+  
   const totalCredits = cartRows.reduce((total, row) => total + row.credits, 0);
 
   return (
@@ -137,15 +167,24 @@ const Registration = () => {
       <Card sx={{ width: '40vw' }}>
         <CardHeader title="Class Search" sx={{ backgroundColor: '#800000', color: '#fff', p: 1 }} titleTypographyProps={{ variant: 'h6' }} />
         <CardContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <TextField
-            label="Search Classes"
-            fullWidth
-            margin="normal"
-            variant="outlined"
-            sx={{
-              m: 0,
-            }}
-          />
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <Typography
+              variant="subtitle2"
+            >
+              Put brackets around SBCs to search for them. Ex: [SPK]
+            </Typography>
+            <TextField
+              label="Search Classes"
+              fullWidth
+              margin="normal"
+              variant="outlined"
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyUp={handleSearchKeyPress}
+              sx={{
+                m: 0,
+              }}
+            />
+          </Box>
           <DataGrid
             rows={displayRows(searchRows)}
             columns={[
@@ -185,13 +224,28 @@ const Registration = () => {
               },
             }}
           />
-          <ClassInfo />
+          {searchRows
+            .filter((row, index, self) => 
+              // Check if this (class, code) pair is unique in the array
+              self.findIndex((r) => r.class === row.class && r.code === row.code) === index
+            )
+            .map((row) => (
+              <ClassInfo
+                class1={row.class}
+                code={row.code}
+                section={row.section}
+                title={row.title}
+                description={row.description}
+                prereq={row.prereq}
+                sbc={row.sbc}
+              />
+          ))}
         </CardContent>
       </Card>
       <Dialog open={dialogOpen} onClose={handleDialogClose}>
         <DialogTitle sx={{ backgroundColor: '#800000', color: 'white' }}>Time Conflict</DialogTitle>
         <DialogContent sx={{ display: 'flex', flexDirection: 'column' }}>
-          <DialogContentText sx={{ mt: 2 }}>
+          <DialogContentText sx={{ mt: 2, color: 'black' }}>
             The class you're trying to add conflicts with: {conflictClass?.class} {conflictClass?.code}-{conflictClass?.section}.
           </DialogContentText>
         </DialogContent>

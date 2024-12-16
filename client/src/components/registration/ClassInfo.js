@@ -1,22 +1,20 @@
 import { Box, Typography } from '@mui/material';
 import React from 'react';
 
-const ClassInfo = () => {
+const ClassInfo = ({ class1, code, title, description, prereq, sbc }) => {
     return (
         <Box>
             <Typography variant="h5" fontWeight="bold" >
-                CSE 300-01: Technical Communications
+                {class1} {code}: {title}
             </Typography>
             <Typography variant="body2">
-                Principles of professional technical communications for Computer
-                Science majors. Includes business communications, user manuals,
-                press releases, and presentation techniques.
+                {description}
             </Typography>
             <Typography variant="body2">
-                <strong>Prerequisites: </strong>WRT 102; CSE or ISE or DAS major, U3 or U4 standing
+                <strong>Prerequisites: </strong>{prereq}
             </Typography>
             <Typography variant="body2">
-                <strong>SBC: </strong>SPK, WRTD
+                <strong>SBC: </strong>{sbc.join(", ")}
             </Typography>
         </Box>
     )

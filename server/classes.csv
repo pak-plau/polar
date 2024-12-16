@@ -1,3 +1,3 @@
-class,code,section,days,timeStart,timeEnd,room,instructor
-CSE/ISE,312,01,TR,12:00,13:20,LIB W4540,Samuel Cook
-CSE/ISE,312,02,MWF,8:00,8:55,HUM 3017,Gray Meredith
+class,code,section,days,timeStart,timeEnd,room,instructor,maxSize,size
+CSE/ISE,312,01,TR,12:00,13:20,LIB W4540,Samuel Cook,40,40
+CSE/ISE,312,02,MW,13:30,14:50,HUM 3017,Gray Meredith,40,0

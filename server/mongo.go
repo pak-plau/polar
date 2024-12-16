@@ -3,17 +3,14 @@ package main
 import (
 	"context"
 	"encoding/csv"
-	"encoding/json"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"strconv"
 	"strings"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -48,6 +45,7 @@ func connectMongoDB() {
 		log.Printf("%v", err)
 	}
 
+	// Uncomment if there are updates to classes.csv
 	err = parseCSVAndInsertIntoClasses("classes.csv")
 	if err != nil {
 		log.Printf("%v", err)
@@ -105,10 +103,10 @@ func parseCSVAndInsertIntoCourses(csvFilePath string) error {
 			if headers[i] == "credits" {
 				credits, convErr := strconv.ParseFloat(value, 64)
 				if convErr != nil {
-					return fmt.Errorf("failed to covnert 'credits' to a number: %v", convErr)
+					return fmt.Errorf("failed to convert 'credits' to a number: %v", convErr)
 				}
 				document[headers[i]] = credits
-			} else if headers[i] == "class" {
+			} else if headers[i] == "class" || headers[i] == "sbc" {
 				document[headers[i]] = strings.Split(value, "/")
 			} else {
 				document[headers[i]] = value
@@ -166,11 +164,25 @@ func parseCSVAndInsertIntoClasses(csvFilePath string) error {
 		}
 		document := bson.M{}
 		if course != nil {
-			document["courseId"] = course["_id"]
+			document["course"] = course
 		}
 		for i, value := range row {
 			if i > 1 {
-				document[headers[i]] = value
+				if headers[i] == "timeStart" || headers[i] == "timeEnd" {
+					time, timeErr := convertTimeToDate(value)
+					if timeErr != nil {
+						return timeErr
+					}
+					document[headers[i]] = time
+				} else if headers[i] == "maxSize" || headers[i] == "size" {
+					number, numberErr := strconv.Atoi(value)
+					if numberErr != nil {
+						return numberErr
+					}
+					document[headers[i]] = number
+				} else {
+					document[headers[i]] = value
+				}
 			}
 		}
 		documents = append(documents, document)
@@ -179,9 +191,27 @@ func parseCSVAndInsertIntoClasses(csvFilePath string) error {
 	if err != nil {
 		return fmt.Errorf("failed to insert documents into classes collection: %v", err)
 	}
-
 	fmt.Printf("Successfully inserted %d rows into the 'classes' collection.\n", len(documents))
 	return nil
+}
+
+func convertTimeToDate(timeString string) (time.Time, error) {
+	const layout = "15:04"
+	parsedTime, err := time.Parse(layout, timeString)
+	if err != nil {
+		return time.Time{}, err
+	}
+	dateWithTime := time.Date(
+		2003,
+		time.January,
+		30,
+		parsedTime.Hour(),
+		parsedTime.Minute(),
+		0,
+		0,
+		time.Now().Location(),
+	)
+	return dateWithTime, nil
 }
 
 func deleteAllDocumentsInCollection(collectionName string) error {
@@ -196,73 +226,49 @@ func deleteAllDocumentsInCollection(collectionName string) error {
 	return nil
 }
 
-func getAllDocuments(collectionName string, w http.ResponseWriter) {
-	collection := dbClient.Database("polar").Collection(collectionName)
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+func searchClasses(query string) ([]bson.M, error) {
+	collection := dbClient.Database(dbName).Collection("classes")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-
-	cursor, err := collection.Find(ctx, bson.M{})
+	filter := bson.M{
+		"$or": []bson.M{
+			{"course.class": bson.M{"$in": []string{query}}},
+			{"course.class": bson.M{"$regex": "(?i)" + query}},
+			{"course.code": query},
+		},
+		"size": bson.M{"$gt": 0},
+	}
+	cursor, err := collection.Find(ctx, filter)
 	if err != nil {
-		http.Error(w, "Failed to fetch documents", http.StatusInternalServerError)
-		return
+		return nil, fmt.Errorf("failed to search classes: %v", err)
 	}
 	defer cursor.Close(ctx)
-
 	var results []bson.M
-	if err := cursor.All(ctx, &results); err != nil {
-		http.Error(w, "Failed to parse documents", http.StatusInternalServerError)
-		return
+	if err = cursor.All(ctx, &results); err != nil {
+		return nil, fmt.Errorf("failed to decode results: %v", err)
 	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(results)
+	return results, nil
 }
 
-func addDocument(collectionName string, w http.ResponseWriter, r *http.Request) {
-	collection := dbClient.Database("polar").Collection(collectionName)
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+func searchSBC(query string) ([]bson.M, error) {
+	collection := dbClient.Database(dbName).Collection("classes")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-
-	var document map[string]interface{}
-	if err := json.NewDecoder(r.Body).Decode(&document); err != nil {
-		http.Error(w, "Invalid JSON body", http.StatusBadRequest)
-		return
+	filter := bson.M{
+		"$or": []bson.M{
+			{"course.sbc": bson.M{"$in": []string{query}}},
+			{"course.sbc": bson.M{"$regex": "(?i)" + query}},
+		},
+		"size": bson.M{"$gt": 0},
 	}
-
-	document["_id"] = primitive.NewObjectID()
-	res, err := collection.InsertOne(ctx, document)
+	cursor, err := collection.Find(ctx, filter)
 	if err != nil {
-		http.Error(w, "Failed to insert document", http.StatusInternalServerError)
-		return
+		return nil, fmt.Errorf("failed to search sbc: %v", err)
 	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(res)
-}
-
-func deleteDocument(collectionName string, w http.ResponseWriter, r *http.Request) {
-	collection := dbClient.Database("polar").Collection(collectionName)
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	id := r.URL.Query().Get("id")
-	if id == "" {
-		http.Error(w, "ID parameter is required", http.StatusBadRequest)
-		return
+	defer cursor.Close(ctx)
+	var results []bson.M
+	if err = cursor.All(ctx, &results); err != nil {
+		return nil, fmt.Errorf("failed to decode results: %v", err)
 	}
-
-	objectID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		http.Error(w, "Invalid ID format", http.StatusBadRequest)
-		return
-	}
-
-	_, err = collection.DeleteOne(ctx, bson.M{"_id": objectID})
-	if err != nil {
-		http.Error(w, "Failed to delete document", http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Document deleted successfully"))
+	return results, nil
 }
