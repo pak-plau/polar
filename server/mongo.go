@@ -50,6 +50,12 @@ func connectMongoDB() {
 	if err != nil {
 		log.Printf("%v", err)
 	}
+
+	// Uncomment if there are updates to users.csv
+	err = parseCSVAndInsertIntoUsers("users.csv")
+	if err != nil {
+		log.Printf("%v", err)
+	}
 }
 
 func ensureCollectionExists(ctx context.Context, db *mongo.Database, collectionName string) {
@@ -118,7 +124,7 @@ func parseCSVAndInsertIntoCourses(csvFilePath string) error {
 	if err != nil {
 		return fmt.Errorf("failed to insert documents: %v", err)
 	}
-	fmt.Printf("Successfully inserted %d rows into the '%s' collection.\n", len(documents), "courses")
+	fmt.Printf("Successfully inserted %d rows into the 'courses' collection.\n", len(documents))
 	return nil
 }
 
@@ -192,6 +198,66 @@ func parseCSVAndInsertIntoClasses(csvFilePath string) error {
 		return fmt.Errorf("failed to insert documents into classes collection: %v", err)
 	}
 	fmt.Printf("Successfully inserted %d rows into the 'classes' collection.\n", len(documents))
+	return nil
+}
+
+func parseCSVAndInsertIntoUsers(csvFilePath string) error {
+	deleteErr := deleteAllDocumentsInCollection("users")
+	if deleteErr != nil {
+		return deleteErr
+	}
+	file, err := os.Open(csvFilePath)
+	if err != nil {
+		return fmt.Errorf("failed to open CSV file: %v", err)
+	}
+	defer file.Close()
+	reader := csv.NewReader(file)
+	rows, err := reader.ReadAll()
+	if err != nil {
+		return fmt.Errorf("failed to read CSV file: %v", err)
+	}
+	if len(rows) < 2 {
+		return fmt.Errorf("CSV file is empty or does not have a header row")
+	}
+	headers := rows[0]
+	collection := dbClient.Database(dbName).Collection("users")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	var documents []interface{}
+	for _, row := range rows[1:] {
+		if len(row) != len(headers) {
+			return fmt.Errorf("row length does not match header length: %v", row)
+		}
+		document := bson.M{}
+		for i, value := range row {
+			if headers[i] == "credits" {
+				credits, convErr := strconv.ParseFloat(value, 64)
+				if convErr != nil {
+					return fmt.Errorf("failed to convert 'credits' to a number: %v", convErr)
+				}
+				document[headers[i]] = credits
+			} else if headers[i] == "classes" {
+				var grades = make(map[string]string)
+				classes := strings.Split(value, ";")
+				for _, class := range classes {
+					temp := strings.Split(class, ":")
+					grades[temp[0]] = temp[1]
+				}
+				document[headers[i]] = grades
+			} else if headers[i] == "timesheet" {
+				var temp []map[string]interface{}
+				document[headers[i]] = temp
+			} else {
+				document[headers[i]] = value
+			}
+		}
+		documents = append(documents, document)
+	}
+	_, err = collection.InsertMany(ctx, documents)
+	if err != nil {
+		return fmt.Errorf("failed to insert documents: %v", err)
+	}
+	fmt.Printf("Successfully inserted %d rows into the 'users' collection.\n", len(documents))
 	return nil
 }
 
@@ -271,4 +337,19 @@ func searchSBC(query string) ([]bson.M, error) {
 		return nil, fmt.Errorf("failed to decode results: %v", err)
 	}
 	return results, nil
+}
+
+func updateTimeSheet(timesheet []map[string]interface{}, id string) error {
+	collection := dbClient.Database(dbName).Collection("users")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	filter := bson.M{"id": id}
+	update := bson.M{
+		"$set": bson.M{"timesheet": timesheet},
+	}
+	_, err := collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return fmt.Errorf("failed to update timesheet for user with id %s: %v", id, err)
+	}
+	return nil
 }

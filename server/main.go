@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -16,6 +17,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/login", handleLogin)
 	mux.HandleFunc("/search", handleSearchClasses)
+	mux.HandleFunc("/saveTimesheet", handleSaveTimesheet)
 	fmt.Println("Starting server at port 8080")
 	log.Fatal(http.ListenAndServe("0.0.0.0:8080", enableCORS(logRequests(mux))))
 }
@@ -125,4 +127,43 @@ func handleSearchClasses(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, "Error sending response", http.StatusInternalServerError)
 	}
+}
+
+func handleSaveTimesheet(w http.ResponseWriter, r *http.Request) {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "Error reading req body", http.StatusInternalServerError)
+		return
+	}
+	var request struct {
+		Timesheet []map[string]interface{} `json:"timesheet"`
+	}
+	err = json.Unmarshal(body, &request)
+	if err != nil {
+		http.Error(w, "Error parsing JSON req body", http.StatusBadRequest)
+		return
+	}
+	fmt.Println(request.Timesheet)
+	var sheet []map[string]interface{}
+	for _, entry := range request.Timesheet {
+		temp := make(map[string]interface{})
+		temp["status"] = entry["status"]
+		timeIn, timeInErr := time.Parse(time.RFC3339, entry["timeIn"].(string))
+		if timeInErr != nil {
+			http.Error(w, "Error converting timeIn", http.StatusBadRequest)
+		}
+		temp["timeIn"] = timeIn
+		timeOut, timeOutErr := time.Parse(time.RFC3339, entry["timeOut"].(string))
+		if timeOutErr != nil {
+			http.Error(w, "Error converting timeOut", http.StatusBadRequest)
+		}
+		temp["timeOut"] = timeOut
+		sheet = append(sheet, temp)
+	}
+	err = updateTimeSheet(sheet, "114640750")
+	if err != nil {
+		http.Error(w, "Error updating timesheet to MongoDB", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
 }

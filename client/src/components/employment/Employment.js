@@ -9,10 +9,7 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 
 const Employment = () => {
-  const [rows, setRows] = useState([
-    { id: 0, timeIn: new Date(2024, 4, 8, 9), timeOut: new Date(2024, 4, 8, 17), status: '' },
-    { id: 1, timeIn: new Date(2024, 4, 9, 9), timeOut: new Date(2024, 4, 9, 17), status: '' },
-  ]);
+  const [rows, setRows] = useState([]);
   const [addOpened, setAddOpened] = useState(false);
   const [date, setDate] = useState(null);
   const [timeIn, setTimeIn] = useState(null);
@@ -155,6 +152,38 @@ const Employment = () => {
     return (timeOut - timeIn) / 1000 / 60 / 60;
   };
 
+  const getTimeInMinutes = (time) => {
+    if (!time) {
+      return 0;
+    }
+    return time.getHours() * 60 + time.getMinutes();
+  }
+
+  const isSameDate = (date1, date2) => {
+    return (
+      date1.getFullYear() === date2.getFullYear() &&
+      date1.getMonth() === date2.getMonth() &&
+      date1.getDate() === date2.getDate()
+    );
+  };
+
+  const conflict = () => {
+    return rows.some((row) => {
+      return (
+        date && timeIn && timeOut && row.timeIn && row.timeOut && isSameDate(date, row.timeIn) &&
+        (
+          (getTimeInMinutes(timeIn) >= getTimeInMinutes(row.timeIn) && getTimeInMinutes(timeOut) <= getTimeInMinutes(row.timeOut)) 
+          ||
+          (getTimeInMinutes(timeIn) < getTimeInMinutes(row.timeIn) && getTimeInMinutes(timeOut) > getTimeInMinutes(row.timeIn) && getTimeInMinutes(timeOut) <= getTimeInMinutes(row.timeOut))
+          ||
+          (getTimeInMinutes(timeIn) >= getTimeInMinutes(row.timeIn) && getTimeInMinutes(timeIn) < getTimeInMinutes(row.timeOut) && getTimeInMinutes(timeOut) >= getTimeInMinutes(row.timeOut))
+          ||
+          (getTimeInMinutes(timeIn) <= getTimeInMinutes(row.timeIn) && getTimeInMinutes(timeOut) >= getTimeInMinutes(row.timeOut))
+        )
+      );
+    });
+  };
+
   const returnTimeStr = (dateTime) => {
     let hours = dateTime.getHours();
     let minutes = dateTime.getMinutes();
@@ -176,10 +205,15 @@ const Employment = () => {
   };
 
   const handleDeleteRow = (id) => {
+    const rowToDelete = rows.find((row) => row.id === id);
+    if (rowToDelete && rowToDelete.status === 'A') {
+      alert('Cannot delete a row with status "A"');
+      return;
+    }
     setRows((prevRows) => {
       return prevRows.filter((row) => row.id !== id);
     });
-  };
+  };  
 
   const handleAddRow = (date, timeIn, timeOut) => {
     let dateIn = new Date(date);
@@ -188,14 +222,36 @@ const Employment = () => {
     dateIn.setMinutes(timeIn.getMinutes());
     dateOut.setHours(timeOut.getHours());
     dateOut.setMinutes(timeOut.getMinutes());
-    setRows((prevRows) => [...prevRows, { id: prevRows.length, timeIn: dateIn, timeOut: dateOut, status: '' }])
+    setRows((prevRows) => [...prevRows, { id: prevRows.length, timeIn: dateIn, timeOut: dateOut, status: '' }]);
   };
+
+  const handleSave = () => {
+    const timesheetData = rows
+      .filter((row) => row.id !== 'add')
+      .map(({ id, delete: _, ...rest }) => rest);
+    fetch('http://localhost:8080/saveTimesheet', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ timesheet: timesheetData }),
+    }).then((response) => {
+      if (response.ok) {
+        console.log('Timesheet saved successfully');
+      } else {
+        console.error('Failed to save timesheet');
+      }
+    }).catch((error) => {
+      console.error('Error:', error);
+    });
+  };
+  
 
   const totalHours = rows
     .filter((row) => row.id !== 'add')
     .reduce((total, row) => total + calculateHours(row.timeIn, row.timeOut), 0);
 
-  const isAddDisabled = !date || !timeIn || !timeOut || timeOut <= timeIn || dateError || timeInError || timeOutError;
+  const isAddDisabled = !date || !timeIn || !timeOut || timeOut <= timeIn || dateError || timeInError || timeOutError || calculateHours(timeIn, timeOut) > 6 || conflict();
 
   return (
     <Box
@@ -266,7 +322,7 @@ const Employment = () => {
               Total Hours: {totalHours.toFixed(2)}
             </Typography>
             <Button
-              onClick={() => console.log(rows)}
+              onClick={handleSave}
               variant="contained"
               color="primary"
               sx={{
@@ -328,6 +384,16 @@ const Employment = () => {
             {timeOutBefore && (
               <Typography sx={{ color: 'red', fontSize: '.8rem'}}>
                 Time Out is before Time in
+              </Typography>
+            )}
+            {calculateHours(timeIn, timeOut) > 6 && (
+              <Typography sx={{ color: 'red', fontSize: '.8rem'}}>
+                Time is greater than 6 hours
+              </Typography>
+            )}
+            {conflict() && (
+              <Typography sx={{ color: 'red', fontSize: '.8rem'}}>
+                There is a time conflict
               </Typography>
             )}
           </LocalizationProvider>
