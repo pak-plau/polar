@@ -19,6 +19,7 @@ func main() {
 	mux.HandleFunc("/search", handleSearchClasses)
 	mux.HandleFunc("/saveTimesheet", handleSaveTimesheet)
 	mux.HandleFunc("/checkPrereq", handleCheckPrereq)
+	mux.HandleFunc("/saveCart", handleSaveCart)
 	fmt.Println("Starting server at port 8080")
 	log.Fatal(http.ListenAndServe("0.0.0.0:8080", enableCORS(logRequests(mux))))
 }
@@ -215,7 +216,7 @@ func handleCheckPrereq(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		} else {
-			temp, err := checkGrade("D", strings.Split(req, " ")[1], "114640750")
+			temp, err := checkGrade("D", req, "114640750")
 			if err != nil {
 				http.Error(w, "Error checking grade credit", http.StatusInternalServerError)
 				return
@@ -236,4 +237,31 @@ func sendConflict(w http.ResponseWriter, message string) {
 		"error": message,
 	}
 	json.NewEncoder(w).Encode(response)
+}
+
+func handleSaveCart(w http.ResponseWriter, r *http.Request) {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "Error reading req body", http.StatusInternalServerError)
+		return
+	}
+	var request struct {
+		Classes []map[string]interface{} `json:"classes"`
+	}
+	err = json.Unmarshal(body, &request)
+	if err != nil {
+		http.Error(w, "Error parsing JSON req body", http.StatusBadRequest)
+		return
+	}
+	var classes []string
+	for _, clas := range request.Classes {
+		classes = append(classes, clas["class"].(string)+" "+clas["code"].(string)+"-"+clas["section"].(string))
+	}
+	err = updateCart(classes, "114640750")
+	if err != nil {
+		fmt.Println(err)
+		sendConflict(w, err.Error())
+	} else {
+		w.WriteHeader(http.StatusOK)
+	}
 }

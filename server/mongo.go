@@ -245,6 +245,9 @@ func parseCSVAndInsertIntoUsers(csvFilePath string) error {
 			} else if headers[i] == "timesheet" {
 				var temp []map[string]interface{}
 				document[headers[i]] = temp
+			} else if headers[i] == "current" {
+				var temp []map[string]string
+				document[headers[i]] = temp
 			} else {
 				document[headers[i]] = value
 			}
@@ -345,9 +348,15 @@ func updateTimeSheet(timesheet []map[string]interface{}, id string) error {
 	update := bson.M{
 		"$set": bson.M{"timesheet": timesheet},
 	}
-	_, err := collection.UpdateOne(ctx, filter, update)
+	result, err := collection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return fmt.Errorf("failed to update timesheet for user with id %s: %v", id, err)
+	}
+	if result.MatchedCount == 0 {
+		return fmt.Errorf("no user found with id %v", id)
+	}
+	if result.ModifiedCount == 0 {
+		return fmt.Errorf("timesheet could not be added to %v", id)
 	}
 	return nil
 }
@@ -430,4 +439,101 @@ func indexInArray(target string, arr []string) int {
 		}
 	}
 	return -1
+}
+
+func updateCart(classes []string, id string) error {
+	collection := dbClient.Database(dbName).Collection("users")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	var failed []string
+	for _, clas := range classes {
+		course := strings.Split(clas, " ")[0]
+		code := strings.Split(strings.Split(clas, " ")[1], "-")[0]
+		section := strings.Split(strings.Split(clas, " ")[1], "-")[1]
+		err := updateClassSize(course, code, section)
+		if err != nil {
+			failed = append(failed, clas)
+			continue
+		}
+		temp, err := searchClass(course, code, section)
+		if err != nil {
+			failed = append(failed, clas)
+			continue
+		}
+		filter := bson.M{"id": id}
+		var existingUser bson.M
+		err = collection.FindOne(ctx, filter).Decode(&existingUser)
+		if err != nil {
+			failed = append(failed, clas)
+			continue
+		}
+		current := existingUser["current"]
+		var update bson.M
+		if current == nil {
+			update = bson.M{
+				"$set": bson.M{
+					"current": []interface{}{temp},
+				},
+			}
+		} else {
+			update = bson.M{
+				"$push": bson.M{
+					"current": temp,
+				},
+			}
+		}
+		result, err := collection.UpdateOne(ctx, filter, update)
+		if err != nil || result.MatchedCount == 0 || result.ModifiedCount == 0 {
+			failed = append(failed, clas)
+		}
+	}
+	if len(failed) > 0 {
+		return fmt.Errorf("failed to add classes: %v", strings.Join(failed, ","))
+	}
+	return nil
+}
+
+func updateClassSize(course string, code string, section string) error {
+	collection := dbClient.Database(dbName).Collection("classes")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	filter := bson.M{
+		"course.class": strings.Split(course, "/"),
+		"course.code":  code,
+		"section":      section,
+		"size":         bson.M{"$gt": 0},
+	}
+	update := bson.M{
+		"$inc": bson.M{
+			"size": -1,
+		},
+	}
+	result, err := collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return fmt.Errorf("failed to update class size: %v", err)
+	}
+	if result.MatchedCount == 0 {
+		return fmt.Errorf("class size is already at 0 or the class does not exist")
+	}
+	return nil
+}
+
+func searchClass(course string, code string, section string) (bson.M, error) {
+	collection := dbClient.Database(dbName).Collection("classes")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	filter := bson.M{
+		"course.class": strings.Split(course, "/"),
+		"course.code":  code,
+		"section":      section,
+	}
+	var result bson.M
+	err := collection.FindOne(ctx, filter).Decode(&result)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, fmt.Errorf("class not found")
+		}
+		return nil, fmt.Errorf("failed to search class: %v", err)
+	}
+	return result, nil
 }

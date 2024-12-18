@@ -99,39 +99,43 @@ const Registration = () => {
       setDialogOpen(true);
       return;
     }
-    try {
-      const response = await fetch("http://localhost:8080/checkPrereq", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ prereq: selectedClass.prereq }),
-      });
-      if (response.ok) {
-        setCartRows((prevRows) => [...prevRows, selectedClass]);
-      } else if (response.status === 409) {
-        const errorData = await response.json();
-        setConflictClass({
-          conflictMessage:
-            errorData.error || "You do not meet the prerequisites for this class.",
-          conflictHeader: "Prerequisite Error",
+    if (selectedClass.prereq !== "") {
+      try {
+        const response = await fetch("http://localhost:8080/checkPrereq", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ prereq: selectedClass.prereq }),
         });
-        setDialogOpen(true);
-      } else {
-        console.error("Failed to check prerequisites:", response.statusText);
+        if (response.ok) {
+          setCartRows((prevRows) => [...prevRows, selectedClass]);
+        } else if (response.status === 409) {
+          const errorData = await response.json();
+          setConflictClass({
+            conflictMessage:
+              errorData.error || "You do not meet the prerequisites for this class.",
+            conflictHeader: "Prerequisite Error",
+          });
+          setDialogOpen(true);
+        } else {
+          console.error("Failed to check prerequisites:", response.statusText);
+          setConflictClass({
+            conflictMessage: "An unexpected error occurred while checking prerequisites.",
+            conflictHeader: "Server Error",
+          });
+          setDialogOpen(true);
+        }
+      } catch (error) {
+        console.error("Error during prerequisite check:", error);
         setConflictClass({
-          conflictMessage: "An unexpected error occurred while checking prerequisites.",
-          conflictHeader: "Server Error",
+          conflictMessage: "A network error occurred while checking prerequisites.",
+          conflictHeader: "Network Error",
         });
         setDialogOpen(true);
       }
-    } catch (error) {
-      console.error("Error during prerequisite check:", error);
-      setConflictClass({
-        conflictMessage: "A network error occurred while checking prerequisites.",
-        conflictHeader: "Network Error",
-      });
-      setDialogOpen(true);
+    } else {
+      setCartRows((prevRows) => [...prevRows, selectedClass]);
     }
   };  
 
@@ -192,7 +196,26 @@ const Registration = () => {
         console.error('Error during search request:', error);
       }
     }
-  };  
+  };
+
+  const handleSaveCart = async () => {
+    try {
+      const response = await fetch('http://localhost:8080/saveCart', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ classes: cartRows }),
+      });
+      if (response.ok) {
+        console.log('Cart saved successfully');
+      } else {
+        console.error('Failed to save cart:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error saving cart:', error);
+    }
+  };
   
   const totalCredits = cartRows.reduce((total, row) => total + row.credits, 0);
 
@@ -256,6 +279,9 @@ const Registration = () => {
           <Typography variant="body2" sx={{ textAlign: 'right' }}>
             Total Credits: {totalCredits}
           </Typography>
+          <Button onClick={handleSaveCart} sx={{ backgroundColor: '#800000', color: '#fff', fontWeight: 'bold' }}>
+            Save Cart
+          </Button>
           <Schedule rows={cartRows} />
         </CardContent>
       </Card>

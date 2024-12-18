@@ -1,2 +1,2 @@
-id,pass,first,last,classes,timesheet,major,credits,gpa
-114640750,5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8,Pak,Lau,CSE 316:A;CSE 416:B+;CSE 320:C+,,"CSE",120,3.65
+id,pass,first,last,classes,current,timesheet,major,credits,gpa
+114640750,5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8,Pak,Lau,CSE 316:A;CSE 416:B+;CSE 320:C+,,,"CSE",120,3.65
