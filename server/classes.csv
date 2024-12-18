@@ -1,6 +1,6 @@
 class,code,section,days,timeStart,timeEnd,room,instructor,maxSize,size
 CSE,150,01,MWF,18:00,18:55,ONLINE,Paul Fodor,50,50
 CSE/ISE,312,01,TR,12:00,13:20,LIB W4540,Samuel Cook,40,40
-CSE/ISE,312,02,MW,13:30,14:50,HUM 3017,Gray Meredith,40,1
+CSE/ISE,312,02,MW,13:30,14:50,HUM 3017,Gray Meredith,40,40
 CSE,320,01,MW,8:00,9:20,FREY 104,Howard Stark,100,100
 CSE,316,01,TR,14:00,15:20,FREY 100,Christopher Kane,100,100

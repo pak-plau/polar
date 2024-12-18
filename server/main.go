@@ -20,6 +20,7 @@ func main() {
 	mux.HandleFunc("/saveTimesheet", handleSaveTimesheet)
 	mux.HandleFunc("/checkPrereq", handleCheckPrereq)
 	mux.HandleFunc("/saveCart", handleSaveCart)
+	mux.HandleFunc("/getCart", handleGetCart)
 	fmt.Println("Starting server at port 8080")
 	log.Fatal(http.ListenAndServe("0.0.0.0:8080", enableCORS(logRequests(mux))))
 }
@@ -254,6 +255,7 @@ func handleSaveCart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var classes []string
+	fmt.Println(request.Classes)
 	for _, clas := range request.Classes {
 		classes = append(classes, clas["class"].(string)+" "+clas["code"].(string)+"-"+clas["section"].(string))
 	}
@@ -263,5 +265,55 @@ func handleSaveCart(w http.ResponseWriter, r *http.Request) {
 		sendConflict(w, err.Error())
 	} else {
 		w.WriteHeader(http.StatusOK)
+	}
+}
+
+func handleGetCart(w http.ResponseWriter, r *http.Request) {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "Error reading req body", http.StatusInternalServerError)
+		return
+	}
+	var request struct {
+		Id string `json:"id"`
+	}
+	err = json.Unmarshal(body, &request)
+	if err != nil {
+		http.Error(w, "Error parsing JSON req body", http.StatusBadRequest)
+		return
+	}
+	cart, err := getCurrent(request.Id)
+	if err != nil {
+		http.Error(w, "Error with getting cart", http.StatusInternalServerError)
+		return
+	}
+	var responses []map[string]interface{}
+	for _, result := range cart {
+		response := make(map[string]interface{})
+		if course, ok := result["course"].(bson.M); ok {
+			response["id"] = result["_id"]
+			response["class"] = course["class"]
+			response["code"] = course["code"]
+			response["credits"] = course["credits"]
+			response["title"] = course["title"]
+			response["description"] = course["description"]
+			response["prereq"] = course["prereq"]
+			response["sbc"] = course["sbc"]
+		} else {
+			http.Error(w, "Invalid course data", http.StatusInternalServerError)
+			return
+		}
+		response["section"] = result["section"]
+		response["days"] = result["days"]
+		response["timeStart"] = result["timeStart"]
+		response["timeEnd"] = result["timeEnd"]
+		response["instructor"] = result["instructor"]
+		response["room"] = result["room"]
+		responses = append(responses, response)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(responses)
+	if err != nil {
+		http.Error(w, "Error sending response", http.StatusInternalServerError)
 	}
 }

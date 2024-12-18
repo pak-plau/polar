@@ -441,10 +441,31 @@ func indexInArray(target string, arr []string) int {
 	return -1
 }
 
+func setCurrentNull(id string) error {
+	collection := dbClient.Database(dbName).Collection("users")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	filter := bson.M{"id": id}
+	update := bson.M{
+		"$set": bson.M{
+			"current": nil,
+		},
+	}
+	result, err := collection.UpdateOne(ctx, filter, update)
+	if err != nil || result.MatchedCount == 0 {
+		return fmt.Errorf("failed to set current null")
+	}
+	return nil
+}
+
 func updateCart(classes []string, id string) error {
 	collection := dbClient.Database(dbName).Collection("users")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
+	err := setCurrentNull(id)
+	if err != nil {
+		return err
+	}
 	var failed []string
 	for _, clas := range classes {
 		course := strings.Split(clas, " ")[0]
@@ -488,7 +509,7 @@ func updateCart(classes []string, id string) error {
 		}
 	}
 	if len(failed) > 0 {
-		return fmt.Errorf("failed to add classes: %v", strings.Join(failed, ","))
+		return fmt.Errorf("failed to add class(es): %v", strings.Join(failed, ", "))
 	}
 	return nil
 }
@@ -536,4 +557,24 @@ func searchClass(course string, code string, section string) (bson.M, error) {
 		return nil, fmt.Errorf("failed to search class: %v", err)
 	}
 	return result, nil
+}
+
+func getCurrent(id string) ([]bson.M, error) {
+	collection := dbClient.Database(dbName).Collection("users")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	filter := bson.M{
+		"id": id,
+	}
+	var result struct {
+		Current []bson.M `bson:"current"`
+	}
+	err := collection.FindOne(ctx, filter).Decode(&result)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, fmt.Errorf("user not found")
+		}
+		return nil, fmt.Errorf("failed to fetch 'current': %v", err)
+	}
+	return result.Current, nil
 }
