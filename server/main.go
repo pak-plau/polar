@@ -171,7 +171,7 @@ func handleSaveTimesheet(w http.ResponseWriter, r *http.Request) {
 func handleCheckPrereq(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, "Error reading req body", http.StatusInternalServerError)
+		http.Error(w, "Error reading request body", http.StatusInternalServerError)
 		return
 	}
 	var request struct {
@@ -179,10 +179,61 @@ func handleCheckPrereq(w http.ResponseWriter, r *http.Request) {
 	}
 	err = json.Unmarshal(body, &request)
 	if err != nil {
-		http.Error(w, "Error parsing JSON req body", http.StatusBadRequest)
+		http.Error(w, "Error parsing JSON request body", http.StatusBadRequest)
 		return
 	}
-	fmt.Println(request.Prereq)
-	fmt.Println(checkMajors("CSE", "114640750"))
-	fmt.Println(checkStanding("U3", "114640750"))
+	prereqs := strings.Split(request.Prereq, ";")
+	for _, req := range prereqs {
+		if strings.HasPrefix(req, "major") {
+			temp, err := checkMajors(strings.Split(req, " ")[1], "114640750")
+			if err != nil {
+				http.Error(w, "Error checking major", http.StatusInternalServerError)
+				return
+			}
+			if !temp {
+				sendConflict(w, "You do not fit the major prerequisite of this class")
+				return
+			}
+		} else if strings.HasPrefix(req, "standing") {
+			temp, err := checkStanding(strings.Split(req, " ")[1], "114640750")
+			if err != nil {
+				http.Error(w, "Error checking standing", http.StatusInternalServerError)
+				return
+			}
+			if !temp {
+				sendConflict(w, "You do not fit the standing prerequisite of this class")
+				return
+			}
+		} else if strings.HasPrefix(req, ">") {
+			temp, err := checkGrade(strings.Split(req, " ")[0][1:], strings.Split(req, " ")[1], "114640750")
+			if err != nil {
+				http.Error(w, "Error checking minimum grade", http.StatusInternalServerError)
+				return
+			}
+			if !temp {
+				sendConflict(w, "You do not fit the minimum grade prerequisite of this class")
+				return
+			}
+		} else {
+			temp, err := checkGrade("D", strings.Split(req, " ")[1], "114640750")
+			if err != nil {
+				http.Error(w, "Error checking grade credit", http.StatusInternalServerError)
+				return
+			}
+			if !temp {
+				sendConflict(w, "You do not fit the class prerequisite of this class")
+				return
+			}
+		}
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+func sendConflict(w http.ResponseWriter, message string) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusConflict)
+	response := map[string]string{
+		"error": message,
+	}
+	json.NewEncoder(w).Encode(response)
 }

@@ -399,3 +399,35 @@ func checkStanding(standing string, id string) (bool, error) {
 	standings := [3]int{23, 56, 84}
 	return userMap["credits"].(float64) > float64(standings[index-1]), nil
 }
+
+func checkGrade(grade string, classes string, id string) (bool, error) {
+	collection := dbClient.Database(dbName).Collection("users")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	filter := bson.M{
+		"id": id,
+	}
+	var userMap map[string]interface{}
+	err := collection.FindOne(ctx, filter).Decode(&userMap)
+	if err != nil {
+		return false, err
+	}
+	userClasses := userMap["classes"].(map[string]interface{})
+	grades := [11]string{"A", "A-", "B+", "B", "B-", "C+", "C", "C-", "D+", "D", "F"}
+	gradeSlice := grades[:]
+	for _, req := range strings.Split(classes, "/") {
+		if userClasses[strings.Replace(req, ",", " ", 1)] != nil && indexInArray(userClasses[strings.Replace(req, ",", " ", 1)].(string), gradeSlice) <= indexInArray(grade, gradeSlice) {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+func indexInArray(target string, arr []string) int {
+	for index, str := range arr {
+		if str == target {
+			return index
+		}
+	}
+	return -1
+}

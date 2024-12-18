@@ -28,8 +28,15 @@ const Registration = () => {
   const handleAddRow = async (id) => {
     const selectedClass = searchRows.find((row) => row.id === id);
   
-    // Check if a class with the same name already exists
-    const duplicateClass = cartRows.find((cartRow) => cartRow.class === selectedClass.class && cartRow.code === selectedClass.code);
+    if (!selectedClass) {
+      console.error("Selected class not found.");
+      return;
+    }
+    const duplicateClass = cartRows.find(
+      (cartRow) =>
+        cartRow.class === selectedClass.class &&
+        cartRow.code === selectedClass.code
+    );
     if (duplicateClass) {
       setConflictClass({
         ...duplicateClass,
@@ -39,52 +46,60 @@ const Registration = () => {
       setDialogOpen(true);
       return;
     }
-  
-    // Check for time conflicts
-    const conflict = cartRows.find((cartRow) =>
-      selectedClass.days.split('').some((day) =>
-        cartRow.days.includes(day) &&
-        ((selectedClass.timeStart >= cartRow.timeStart && selectedClass.timeStart < cartRow.timeEnd) ||
-          (selectedClass.timeEnd > cartRow.timeStart && selectedClass.timeEnd <= cartRow.timeEnd) ||
-          (selectedClass.timeStart <= cartRow.timeStart && selectedClass.timeEnd >= cartRow.timeEnd))
+    const timeConflict = cartRows.find((cartRow) =>
+      selectedClass.days.split("").some(
+        (day) =>
+          cartRow.days.includes(day) &&
+          ((selectedClass.timeStart >= cartRow.timeStart &&
+            selectedClass.timeStart < cartRow.timeEnd) ||
+            (selectedClass.timeEnd > cartRow.timeStart &&
+              selectedClass.timeEnd <= cartRow.timeEnd) ||
+            (selectedClass.timeStart <= cartRow.timeStart &&
+              selectedClass.timeEnd >= cartRow.timeEnd))
       )
     );
-    if (conflict) {
+    if (timeConflict) {
       setConflictClass({
-        ...conflict,
-        conflictMessage: `The class you're trying to add conflicts with: ${conflict.class} ${conflict.code}-${conflict.section}.`,
+        ...timeConflict,
+        conflictMessage: `The class you're trying to add conflicts with: ${timeConflict.class} ${timeConflict.code}-${timeConflict.section}.`,
         conflictHeader: "Time Conflict",
       });
       setDialogOpen(true);
       return;
     }
-  
-    // Check prerequisites by sending a POST request
     try {
-      const response = await fetch('http://localhost:8080/checkPrereq', {
-        method: 'POST',
+      const response = await fetch("http://localhost:8080/checkPrereq", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ prereq: selectedClass.prereq }),
       });
-  
       if (response.ok) {
-        // Prerequisites satisfied, add the row to the cart
         setCartRows((prevRows) => [...prevRows, selectedClass]);
       } else if (response.status === 409) {
-        // Prerequisites not satisfied, show conflict dialog
         const errorData = await response.json();
         setConflictClass({
-          conflictMessage: errorData.message || "You do not meet the prerequisites for this class.",
+          conflictMessage:
+            errorData.error || "You do not meet the prerequisites for this class.",
           conflictHeader: "Prerequisite Error",
         });
         setDialogOpen(true);
       } else {
         console.error("Failed to check prerequisites:", response.statusText);
+        setConflictClass({
+          conflictMessage: "An unexpected error occurred while checking prerequisites.",
+          conflictHeader: "Server Error",
+        });
+        setDialogOpen(true);
       }
     } catch (error) {
       console.error("Error during prerequisite check:", error);
+      setConflictClass({
+        conflictMessage: "A network error occurred while checking prerequisites.",
+        conflictHeader: "Network Error",
+      });
+      setDialogOpen(true);
     }
   };  
 

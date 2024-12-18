@@ -14,7 +14,7 @@ const ClassInfo = ({ class1, code, title, description, prereq, sbc }) => {
             } else if (req.startsWith("standing")) {
                 str.push(req.substring(9) + " or higher standing");
             } else {
-                str.push(req.split("/").join(" or "));
+                str.push(req.split("/").map((item) => item.replace(',', ' ')).join(" or "));
             }
         });
         return str.join("; ");
