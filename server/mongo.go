@@ -578,3 +578,43 @@ func getCurrent(id string) ([]bson.M, error) {
 	}
 	return result.Current, nil
 }
+
+func getClasses(id string) (map[string]string, error) {
+	collection := dbClient.Database(dbName).Collection("users")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	filter := bson.M{
+		"id": id,
+	}
+	var result struct {
+		Classes map[string]string `bson:"classes"`
+	}
+	err := collection.FindOne(ctx, filter).Decode(&result)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, fmt.Errorf("user not found")
+		}
+		return nil, fmt.Errorf("failed to fetch 'current': %v", err)
+	}
+	return result.Classes, nil
+}
+
+func getGPA(id string) (float64, error) {
+	collection := dbClient.Database(dbName).Collection("users")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	filter := bson.M{
+		"id": id,
+	}
+	var result struct {
+		Gpa float64 `bson:"gpa"`
+	}
+	err := collection.FindOne(ctx, filter).Decode(&result)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return 0, fmt.Errorf("user not found")
+		}
+		return 0, fmt.Errorf("failed to fetch 'current': %v", err)
+	}
+	return result.Gpa, nil
+}

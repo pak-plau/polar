@@ -1,13 +1,68 @@
-import React from "react";
-import { Box, Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableRow } from "@mui/material";
+import React, { useState } from "react";
+import { Box, Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableRow, Dialog, DialogTitle, DialogActions, DialogContent, DialogContentText } from "@mui/material";
 
 const Records = () => {
+  const [openDialog, setOpenDialog] = useState(false);
+  const [transcript, setTranscript] = useState([]);
+  const [gpa, setGpa] = useState(null);
+
   const otherRecords = [
     "Immunization Record",
     "Covid-19 Immunization Record",
     "Insurance Waivers",
     "FERPA Release Form"
   ];
+
+  const fetchUnofficialTranscript = async () => {
+    try {
+      const response = await fetch("http://localhost:8080/getUnofficialTranscript", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ id: "114640750" }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch unofficial transcript");
+      }
+      const data = await response.json();
+      setTranscript(Object.entries(data));
+    } catch (error) {
+      console.error("Error fetching transcript:", error);
+      setTranscript([]);
+    }
+  };
+
+  const fetchGPA = async () => {
+    try {
+      const response = await fetch("http://localhost:8080/getGPA", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ id: "114640750" }),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to fetch GPA");
+      }
+      const data = await response.json();
+      setGpa(data);
+    } catch (error) {
+      console.error("Error fetching GPA:", error);
+      setGpa(null);
+    }
+  };
+
+  const handleDialogOpen = () => {
+    fetchUnofficialTranscript();
+    fetchGPA();
+    setOpenDialog(true);
+  };
+
+  const handleDialogClose = () => {
+    setOpenDialog(false);
+  };
 
   return (
     <Box
@@ -49,23 +104,10 @@ const Records = () => {
             sx={{
               color: "black",
               borderColor: "lightgray",
-              mb: 1,
             }}
+            onClick={handleDialogOpen}
           >
             View Unofficial Transcript
-          </Button>
-          <Button
-            variant="contained"
-            fullWidth
-            sx={{
-              backgroundColor: "gray",
-              color: "white",
-              '&:hover': {
-                backgroundColor: "#646464",
-              },
-            }}
-          >
-            Request Official Transcript
           </Button>
         </CardContent>
       </Card>
@@ -103,6 +145,26 @@ const Records = () => {
           </Table>
         </CardContent>
       </Card>
+      <Dialog open={openDialog} onClose={handleDialogClose}>
+        <DialogTitle sx={{ backgroundColor: '#800000', color: 'white', }}>Unofficial Transcript</DialogTitle>
+        <DialogContent sx={{ display: 'flex', flexDirection: 'column', mt: 1, maxHeight: 400, overflowY: 'auto' }}>
+          {transcript.map((course) => {
+            return (
+              <DialogContentText sx={{ mt: 1, color: 'black' }} key={course[0]}>
+                {course[0]}: {course[1]}
+              </DialogContentText>
+            );
+          })}
+          <DialogContentText sx={{ mt: 1, color: 'black', textAlign: 'right' }}>
+            GPA: {gpa ? gpa : ""}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDialogClose} color="primary">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

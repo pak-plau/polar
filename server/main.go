@@ -21,6 +21,8 @@ func main() {
 	mux.HandleFunc("/checkPrereq", handleCheckPrereq)
 	mux.HandleFunc("/saveCart", handleSaveCart)
 	mux.HandleFunc("/getCart", handleGetCart)
+	mux.HandleFunc("/getUnofficialTranscript", handleGetUnofficialTranscript)
+	mux.HandleFunc("/getGPA", handleGetGPA)
 	fmt.Println("Starting server at port 8080")
 	log.Fatal(http.ListenAndServe("0.0.0.0:8080", enableCORS(logRequests(mux))))
 }
@@ -316,6 +318,58 @@ func handleGetCart(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(responses)
+	if err != nil {
+		http.Error(w, "Error sending response", http.StatusInternalServerError)
+	}
+}
+
+func handleGetUnofficialTranscript(w http.ResponseWriter, r *http.Request) {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "Error reading req body", http.StatusInternalServerError)
+		return
+	}
+	var request struct {
+		Id string `json:"id"`
+	}
+	err = json.Unmarshal(body, &request)
+	if err != nil {
+		http.Error(w, "Error parsing JSON req body", http.StatusBadRequest)
+		return
+	}
+	transcript, err := getClasses(request.Id)
+	if err != nil {
+		http.Error(w, "Error with getting transcript", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(transcript)
+	if err != nil {
+		http.Error(w, "Error sending response", http.StatusInternalServerError)
+	}
+}
+
+func handleGetGPA(w http.ResponseWriter, r *http.Request) {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "Error reading req body", http.StatusInternalServerError)
+		return
+	}
+	var request struct {
+		Id string `json:"id"`
+	}
+	err = json.Unmarshal(body, &request)
+	if err != nil {
+		http.Error(w, "Error parsing JSON req body", http.StatusBadRequest)
+		return
+	}
+	gpa, err := getGPA(request.Id)
+	if err != nil {
+		http.Error(w, "Error with getting transcript", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(gpa)
 	if err != nil {
 		http.Error(w, "Error sending response", http.StatusInternalServerError)
 	}
