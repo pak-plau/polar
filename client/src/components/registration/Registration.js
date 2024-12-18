@@ -10,12 +10,12 @@ import ClassInfo from './ClassInfo';
 const formatter = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
 
 const Registration = () => {
-  const [cartRows, setCartRows] = useState([
+  /* const [cartRows, setCartRows] = useState([
     { id: 1, class: 'CSE', code: '316', section: '01', days: 'TR', timeStart: new Date(2003, 0, 30, 11), timeEnd: new Date(2003, 0, 30, 12, 20), room: 'JLC 102', instructor: 'Christopher Kane', credits: 3.0 },
     { id: 2, class: 'CSE', code: '320', section: '01', days: 'TR', timeStart: new Date(2003, 0, 30, 17, 30), timeEnd: new Date(2003, 0, 30, 18, 50), room: 'JLC 110', instructor: 'Howard Stark', credits: 3.0 },
     { id: 3, class: 'CSE', code: '385', section: '01', days: 'MWF', timeStart: new Date(2003, 0, 30, 13), timeEnd: new Date(2003, 0, 30, 13, 55), room: 'NCS 220', instructor: 'Michael Bender', credits: 3.0 },
-  ]);
-
+  ]); */
+  const [cartRows, setCartRows] = useState([]);
   const [searchRows, setSearchRows] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -27,6 +27,21 @@ const Registration = () => {
 
   const handleAddRow = (id) => {
     const selectedClass = searchRows.find((row) => row.id === id);
+  
+    // Check if a class with the same name already exists
+    const duplicateClass = cartRows.find((cartRow) => cartRow.class === selectedClass.class && cartRow.code === selectedClass.code);
+    if (duplicateClass) {
+      console.log("hi");
+      setConflictClass({
+        ...duplicateClass,
+        conflictMessage: `A class with the same name (${duplicateClass.class} ${duplicateClass.code}-${duplicateClass.section}) is already in your cart.`,
+        conflictHeader: "Duplicate Class"
+      });
+      setDialogOpen(true);
+      return;
+    }
+  
+    // Check for time conflicts
     const conflict = cartRows.find((cartRow) =>
       selectedClass.days.split('').some((day) =>
         cartRow.days.includes(day) &&
@@ -36,12 +51,16 @@ const Registration = () => {
       )
     );
     if (conflict) {
-      setConflictClass(conflict);
+      setConflictClass({
+        ...conflict,
+        conflictMessage: `The class you're trying to add conflicts with: ${conflict.class} ${conflict.code}-${conflict.section}.`,
+        conflictHeader: "Time Conflict"
+      });
       setDialogOpen(true);
     } else {
       setCartRows((prevRows) => [...prevRows, selectedClass]);
     }
-  };  
+  };
 
   const handleDialogClose = () => {
     setDialogOpen(false);
@@ -226,7 +245,6 @@ const Registration = () => {
           />
           {searchRows
             .filter((row, index, self) => 
-              // Check if this (class, code) pair is unique in the array
               self.findIndex((r) => r.class === row.class && r.code === row.code) === index
             )
             .map((row) => (
@@ -243,10 +261,10 @@ const Registration = () => {
         </CardContent>
       </Card>
       <Dialog open={dialogOpen} onClose={handleDialogClose}>
-        <DialogTitle sx={{ backgroundColor: '#800000', color: 'white' }}>Time Conflict</DialogTitle>
+        <DialogTitle sx={{ backgroundColor: '#800000', color: 'white' }}>{conflictClass?.conflictHeader}</DialogTitle>
         <DialogContent sx={{ display: 'flex', flexDirection: 'column' }}>
           <DialogContentText sx={{ mt: 2, color: 'black' }}>
-            The class you're trying to add conflicts with: {conflictClass?.class} {conflictClass?.code}-{conflictClass?.section}.
+            {conflictClass?.conflictMessage}
           </DialogContentText>
         </DialogContent>
         <DialogActions>

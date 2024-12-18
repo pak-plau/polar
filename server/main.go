@@ -18,6 +18,7 @@ func main() {
 	mux.HandleFunc("/login", handleLogin)
 	mux.HandleFunc("/search", handleSearchClasses)
 	mux.HandleFunc("/saveTimesheet", handleSaveTimesheet)
+	mux.HandleFunc("/checkPrereq", handleCheckPrereq)
 	fmt.Println("Starting server at port 8080")
 	log.Fatal(http.ListenAndServe("0.0.0.0:8080", enableCORS(logRequests(mux))))
 }
@@ -143,7 +144,6 @@ func handleSaveTimesheet(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error parsing JSON req body", http.StatusBadRequest)
 		return
 	}
-	fmt.Println(request.Timesheet)
 	var sheet []map[string]interface{}
 	for _, entry := range request.Timesheet {
 		temp := make(map[string]interface{})
@@ -166,4 +166,21 @@ func handleSaveTimesheet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusOK)
+}
+
+func handleCheckPrereq(w http.ResponseWriter, r *http.Request) {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "Error reading req body", http.StatusInternalServerError)
+		return
+	}
+	var request struct {
+		Class string `json:"class"`
+	}
+	err = json.Unmarshal(body, &request)
+	if err != nil {
+		http.Error(w, "Error parsing JSON req body", http.StatusBadRequest)
+		return
+	}
+	fmt.Println(request.Class)
 }

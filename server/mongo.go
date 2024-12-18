@@ -44,13 +44,11 @@ func connectMongoDB() {
 	if err != nil {
 		log.Printf("%v", err)
 	}
-
 	// Uncomment if there are updates to classes.csv
 	err = parseCSVAndInsertIntoClasses("classes.csv")
 	if err != nil {
 		log.Printf("%v", err)
 	}
-
 	// Uncomment if there are updates to users.csv
 	err = parseCSVAndInsertIntoUsers("users.csv")
 	if err != nil {
