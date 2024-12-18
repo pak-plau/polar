@@ -379,3 +379,23 @@ func arraysShareCommonValue(arr1, arr2 []string) bool {
 	}
 	return false
 }
+
+func checkStanding(standing string, id string) (bool, error) {
+	collection := dbClient.Database(dbName).Collection("users")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	filter := bson.M{
+		"id": id,
+	}
+	var userMap map[string]interface{}
+	err := collection.FindOne(ctx, filter).Decode(&userMap)
+	if err != nil {
+		return false, err
+	}
+	index, err := strconv.Atoi(string(standing[1]))
+	if err != nil {
+		return false, err
+	}
+	standings := [3]int{23, 56, 84}
+	return userMap["credits"].(float64) > float64(standings[index-1]), nil
+}

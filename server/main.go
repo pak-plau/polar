@@ -184,4 +184,5 @@ func handleCheckPrereq(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Println(request.Prereq)
 	fmt.Println(checkMajors("CSE", "114640750"))
+	fmt.Println(checkStanding("U3", "114640750"))
 }
