@@ -228,7 +228,7 @@ func parseCSVAndInsertIntoUsers(csvFilePath string) error {
 		}
 		document := bson.M{}
 		for i, value := range row {
-			if headers[i] == "credits" {
+			if headers[i] == "credits" || headers[i] == "gpa" {
 				credits, convErr := strconv.ParseFloat(value, 64)
 				if convErr != nil {
 					return fmt.Errorf("failed to convert 'credits' to a number: %v", convErr)
@@ -350,4 +350,32 @@ func updateTimeSheet(timesheet []map[string]interface{}, id string) error {
 		return fmt.Errorf("failed to update timesheet for user with id %s: %v", id, err)
 	}
 	return nil
+}
+
+func checkMajors(majors string, id string) (bool, error) {
+	collection := dbClient.Database(dbName).Collection("users")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	filter := bson.M{
+		"id": id,
+	}
+	var userMap map[string]interface{}
+	err := collection.FindOne(ctx, filter).Decode(&userMap)
+	if err != nil {
+		return false, err
+	}
+	return arraysShareCommonValue(strings.Split(majors, "/"), strings.Split(userMap["major"].(string), "/")), nil
+}
+
+func arraysShareCommonValue(arr1, arr2 []string) bool {
+	valueMap := make(map[string]bool)
+	for _, value := range arr1 {
+		valueMap[value] = true
+	}
+	for _, value := range arr2 {
+		if valueMap[value] {
+			return true
+		}
+	}
+	return false
 }

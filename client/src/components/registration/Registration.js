@@ -25,17 +25,16 @@ const Registration = () => {
     setCartRows((prevRows) => prevRows.filter((row) => row.id !== id));
   };
 
-  const handleAddRow = (id) => {
+  const handleAddRow = async (id) => {
     const selectedClass = searchRows.find((row) => row.id === id);
   
     // Check if a class with the same name already exists
     const duplicateClass = cartRows.find((cartRow) => cartRow.class === selectedClass.class && cartRow.code === selectedClass.code);
     if (duplicateClass) {
-      console.log("hi");
       setConflictClass({
         ...duplicateClass,
         conflictMessage: `A class with the same name (${duplicateClass.class} ${duplicateClass.code}-${duplicateClass.section}) is already in your cart.`,
-        conflictHeader: "Duplicate Class"
+        conflictHeader: "Duplicate Class",
       });
       setDialogOpen(true);
       return;
@@ -54,13 +53,40 @@ const Registration = () => {
       setConflictClass({
         ...conflict,
         conflictMessage: `The class you're trying to add conflicts with: ${conflict.class} ${conflict.code}-${conflict.section}.`,
-        conflictHeader: "Time Conflict"
+        conflictHeader: "Time Conflict",
       });
       setDialogOpen(true);
-    } else {
-      setCartRows((prevRows) => [...prevRows, selectedClass]);
+      return;
     }
-  };
+  
+    // Check prerequisites by sending a POST request
+    try {
+      const response = await fetch('http://localhost:8080/checkPrereq', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prereq: selectedClass.prereq }),
+      });
+  
+      if (response.ok) {
+        // Prerequisites satisfied, add the row to the cart
+        setCartRows((prevRows) => [...prevRows, selectedClass]);
+      } else if (response.status === 409) {
+        // Prerequisites not satisfied, show conflict dialog
+        const errorData = await response.json();
+        setConflictClass({
+          conflictMessage: errorData.message || "You do not meet the prerequisites for this class.",
+          conflictHeader: "Prerequisite Error",
+        });
+        setDialogOpen(true);
+      } else {
+        console.error("Failed to check prerequisites:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error during prerequisite check:", error);
+    }
+  };  
 
   const handleDialogClose = () => {
     setDialogOpen(false);

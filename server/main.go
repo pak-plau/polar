@@ -175,12 +175,13 @@ func handleCheckPrereq(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var request struct {
-		Class string `json:"class"`
+		Prereq string `json:"prereq"`
 	}
 	err = json.Unmarshal(body, &request)
 	if err != nil {
 		http.Error(w, "Error parsing JSON req body", http.StatusBadRequest)
 		return
 	}
-	fmt.Println(request.Class)
+	fmt.Println(request.Prereq)
+	fmt.Println(checkMajors("CSE", "114640750"))
 }
