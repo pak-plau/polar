@@ -1,24 +1,33 @@
-import React, { useState } from "react";
-import { Box, Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableRow, Dialog, DialogTitle, DialogActions, DialogContent, DialogContentText } from "@mui/material";
+import React, { useState, useEffect } from "react";
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  Button,
+  Table,
+  TableBody,
+  TableCell,
+  TableRow,
+  Dialog,
+  DialogTitle,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+} from "@mui/material";
 
 const Records = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [transcript, setTranscript] = useState([]);
   const [gpa, setGpa] = useState(null);
-
-  const otherRecords = [
-    "Immunization Record",
-    "Covid-19 Immunization Record",
-    "Insurance Waivers",
-    "FERPA Release Form"
-  ];
+  const [otherRecords, setOtherRecords] = useState([]);
 
   const fetchUnofficialTranscript = async () => {
     try {
       const response = await fetch("http://localhost:8080/getUnofficialTranscript", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ id: "114640750" }),
       });
@@ -39,10 +48,11 @@ const Records = () => {
       const response = await fetch("http://localhost:8080/getGPA", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ id: "114640750" }),
       });
+
       if (!response.ok) {
         throw new Error("Failed to fetch GPA");
       }
@@ -51,6 +61,57 @@ const Records = () => {
     } catch (error) {
       console.error("Error fetching GPA:", error);
       setGpa(null);
+    }
+  };
+
+  const fetchOtherRecords = async () => {
+    try {
+      const response = await fetch("http://localhost:8080/getRecords", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id: "114640750" }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch other records");
+      }
+      const data = await response.json();
+      setOtherRecords(data || []);
+    } catch (error) {
+      console.error("Error fetching other records:", error);
+      setOtherRecords([]);
+    }
+  };
+
+  useEffect(() => {
+    fetchOtherRecords();
+  }, []);
+
+  const downloadRecord = async (filename) => {
+    try {
+      const response = await fetch("http://localhost:8080/getRecord", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id: "114640750", filename }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to download record");
+      }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `${filename}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error("Error downloading record:", error);
     }
   };
 
@@ -138,7 +199,20 @@ const Records = () => {
             <TableBody>
               {otherRecords.map((record, idx) => (
                 <TableRow key={idx}>
-                  <TableCell>{record}</TableCell>
+                  <TableCell>
+                    <Button
+                      variant="outlined"
+                      onClick={() => downloadRecord(record.slice(0, -4))}
+                      fullWidth
+                      sx={{
+                        backgroundColor: 'white',
+                        color: "black",
+                        borderColor: "lightgray",
+                      }}
+                    >
+                      {record.slice(0, -4)}
+                    </Button>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -146,16 +220,18 @@ const Records = () => {
         </CardContent>
       </Card>
       <Dialog open={openDialog} onClose={handleDialogClose}>
-        <DialogTitle sx={{ backgroundColor: '#800000', color: 'white', }}>Unofficial Transcript</DialogTitle>
-        <DialogContent sx={{ display: 'flex', flexDirection: 'column', mt: 1, maxHeight: 400, overflowY: 'auto' }}>
+        <DialogTitle sx={{ backgroundColor: "#800000", color: "white" }}>
+          Unofficial Transcript
+        </DialogTitle>
+        <DialogContent sx={{ display: "flex", flexDirection: "column", mt: 1, maxHeight: 400, overflowY: "auto" }}>
           {transcript.map((course) => {
             return (
-              <DialogContentText sx={{ mt: 1, color: 'black' }} key={course[0]}>
+              <DialogContentText sx={{ mt: 1, color: "black" }} key={course[0]}>
                 {course[0]}: {course[1]}
               </DialogContentText>
             );
           })}
-          <DialogContentText sx={{ mt: 1, color: 'black', textAlign: 'right' }}>
+          <DialogContentText sx={{ mt: 1, color: "black", textAlign: "right" }}>
             GPA: {gpa ? gpa : ""}
           </DialogContentText>
         </DialogContent>

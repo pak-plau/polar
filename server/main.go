@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -23,6 +24,8 @@ func main() {
 	mux.HandleFunc("/getCart", handleGetCart)
 	mux.HandleFunc("/getUnofficialTranscript", handleGetUnofficialTranscript)
 	mux.HandleFunc("/getGPA", handleGetGPA)
+	mux.HandleFunc("/getRecords", handleGetRecords)
+	mux.HandleFunc("/getRecord", handleGetRecord)
 	fmt.Println("Starting server at port 8080")
 	log.Fatal(http.ListenAndServe("0.0.0.0:8080", enableCORS(logRequests(mux))))
 }
@@ -372,5 +375,68 @@ func handleGetGPA(w http.ResponseWriter, r *http.Request) {
 	err = json.NewEncoder(w).Encode(gpa)
 	if err != nil {
 		http.Error(w, "Error sending response", http.StatusInternalServerError)
+	}
+}
+
+func handleGetRecords(w http.ResponseWriter, r *http.Request) {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "Error reading req body", http.StatusInternalServerError)
+		return
+	}
+	var request struct {
+		Id string `json:"id"`
+	}
+	err = json.Unmarshal(body, &request)
+	if err != nil {
+		http.Error(w, "Error parsing JSON req body", http.StatusBadRequest)
+		return
+	}
+	files, err := os.ReadDir("./" + request.Id)
+	if err != nil {
+		http.Error(w, "Error reading directory", http.StatusInternalServerError)
+		return
+	}
+	var response []string
+	for _, file := range files {
+		response = append(response, file.Name())
+	}
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(response)
+	if err != nil {
+		http.Error(w, "Error sending response", http.StatusInternalServerError)
+	}
+}
+
+func handleGetRecord(w http.ResponseWriter, r *http.Request) {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "Error reading req body", http.StatusInternalServerError)
+		return
+	}
+	var request struct {
+		Id       string `json:"id"`
+		Filename string `json:"filename"`
+	}
+	err = json.Unmarshal(body, &request)
+	if err != nil {
+		http.Error(w, "Error parsing JSON req body", http.StatusBadRequest)
+		return
+	}
+	file, err := os.Open("./" + request.Id + "/" + request.Filename + ".pdf")
+	if err != nil {
+		http.Error(w, "File not found", http.StatusNotFound)
+		return
+	}
+	defer file.Close()
+
+	w.Header().Set("Content-Type", "application/octet-stream")
+	w.Header().Set("Content-Disposition", "attachment")
+	w.WriteHeader(http.StatusOK)
+
+	_, err = io.Copy(w, file)
+	if err != nil {
+		http.Error(w, "Error sending file", http.StatusInternalServerError)
+		return
 	}
 }
