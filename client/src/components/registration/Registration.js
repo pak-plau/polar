@@ -9,6 +9,38 @@ import ClassInfo from './ClassInfo';
 
 const formatter = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
 
+function CartNoRowsOverlay() {
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        height: "100%",
+        fontSize: "16px",
+      }}
+    >
+      No classes in cart
+    </Box>
+  );
+}
+
+function SearchNoRowsOverlay() {
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        height: "100%",
+        fontSize: "16px",
+      }}
+    >
+      No classes found
+    </Box>
+  );
+}
+
 const Registration = () => {
   /* const [cartRows, setCartRows] = useState([
     { id: 1, class: 'CSE', code: '316', section: '01', days: 'TR', timeStart: new Date(2003, 0, 30, 11), timeEnd: new Date(2003, 0, 30, 12, 20), room: 'JLC 102', instructor: 'Christopher Kane', credits: 3.0 },
@@ -217,6 +249,9 @@ const Registration = () => {
                 outline: 'none',
               },
             }}
+            slots={{
+              noRowsOverlay: CartNoRowsOverlay
+            }}
           />
           <Typography variant="body2" sx={{ textAlign: 'right' }}>
             Total Credits: {totalCredits}
@@ -282,6 +317,9 @@ const Registration = () => {
               '& .MuiDataGrid-columnHeader:focus-within': {
                 outline: 'none',
               },
+            }}
+            slots={{
+              noRowsOverlay: SearchNoRowsOverlay
             }}
           />
           {searchRows
