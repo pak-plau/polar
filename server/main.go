@@ -140,6 +140,7 @@ func handleSaveTimesheet(w http.ResponseWriter, r *http.Request) {
 	}
 	var request struct {
 		Timesheet []map[string]interface{} `json:"timesheet"`
+		Id        string                   `json:"id"`
 	}
 	err = json.Unmarshal(body, &request)
 	if err != nil {
@@ -162,7 +163,7 @@ func handleSaveTimesheet(w http.ResponseWriter, r *http.Request) {
 		temp["timeOut"] = timeOut
 		sheet = append(sheet, temp)
 	}
-	err = updateTimeSheet(sheet, "114640750")
+	err = updateTimeSheet(sheet, request.Id)
 	if err != nil {
 		http.Error(w, "Error updating timesheet to MongoDB", http.StatusInternalServerError)
 		return
@@ -178,6 +179,7 @@ func handleCheckPrereq(w http.ResponseWriter, r *http.Request) {
 	}
 	var request struct {
 		Prereq string `json:"prereq"`
+		Id     string `json:"id"`
 	}
 	err = json.Unmarshal(body, &request)
 	if err != nil {
@@ -187,7 +189,7 @@ func handleCheckPrereq(w http.ResponseWriter, r *http.Request) {
 	prereqs := strings.Split(request.Prereq, ";")
 	for _, req := range prereqs {
 		if strings.HasPrefix(req, "major") {
-			temp, err := checkMajors(strings.Split(req, " ")[1], "114640750")
+			temp, err := checkMajors(strings.Split(req, " ")[1], request.Id)
 			if err != nil {
 				http.Error(w, "Error checking major", http.StatusInternalServerError)
 				return
@@ -197,7 +199,7 @@ func handleCheckPrereq(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		} else if strings.HasPrefix(req, "standing") {
-			temp, err := checkStanding(strings.Split(req, " ")[1], "114640750")
+			temp, err := checkStanding(strings.Split(req, " ")[1], request.Id)
 			if err != nil {
 				http.Error(w, "Error checking standing", http.StatusInternalServerError)
 				return
@@ -207,7 +209,7 @@ func handleCheckPrereq(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		} else if strings.HasPrefix(req, ">") {
-			temp, err := checkGrade(strings.Split(req, " ")[0][1:], strings.Split(req, " ")[1], "114640750")
+			temp, err := checkGrade(strings.Split(req, " ")[0][1:], strings.Split(req, " ")[1], request.Id)
 			if err != nil {
 				http.Error(w, "Error checking minimum grade", http.StatusInternalServerError)
 				return
@@ -217,7 +219,7 @@ func handleCheckPrereq(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 		} else {
-			temp, err := checkGrade("D", req, "114640750")
+			temp, err := checkGrade("D", req, request.Id)
 			if err != nil {
 				http.Error(w, "Error checking grade credit", http.StatusInternalServerError)
 				return
@@ -248,6 +250,7 @@ func handleSaveCart(w http.ResponseWriter, r *http.Request) {
 	}
 	var request struct {
 		Classes []map[string]interface{} `json:"classes"`
+		Id      string                   `json:"id"`
 	}
 	err = json.Unmarshal(body, &request)
 	if err != nil {
@@ -259,7 +262,7 @@ func handleSaveCart(w http.ResponseWriter, r *http.Request) {
 	for _, clas := range request.Classes {
 		classes = append(classes, clas["class"].(string)+" "+clas["code"].(string)+"-"+clas["section"].(string))
 	}
-	err = updateCart(classes, "114640750")
+	err = updateCart(classes, request.Id)
 	if err != nil {
 		fmt.Println(err)
 		sendConflict(w, err.Error())

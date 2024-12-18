@@ -148,7 +148,7 @@ const Registration = () => {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ prereq: selectedClass.prereq }),
+          body: JSON.stringify({ prereq: selectedClass.prereq, id: "114640750" }),
         });
         if (response.ok) {
           setCartRows((prevRows) => [...prevRows, selectedClass]);
@@ -247,7 +247,7 @@ const Registration = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ classes: cartRows }),
+        body: JSON.stringify({ classes: cartRows, id: "114640750" }),
       });
       if (response.ok) {
         await fetchCartRows();
