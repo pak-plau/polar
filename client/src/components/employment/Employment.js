@@ -21,6 +21,7 @@ const Employment = () => {
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [rowToDelete, setRowToDelete] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [isModified, setIsModified] = useState(false);
 
   useEffect(() => {
     const fetchTimesheetData = async () => {
@@ -200,6 +201,7 @@ const Employment = () => {
       setOpenDeleteDialog(true);
     } else {
       setRows((prevRows) => prevRows.filter((row) => row.id !== id));
+      setIsModified(true);
     }
   };  
 
@@ -211,6 +213,7 @@ const Employment = () => {
     dateOut.setHours(timeOut.getHours());
     dateOut.setMinutes(timeOut.getMinutes());
     setRows((prevRows) => [...prevRows, { id: prevRows.length, timeIn: dateIn, timeOut: dateOut, status: '' }]);
+    setIsModified(true);
   };
 
   const handleSave = () => {
@@ -226,6 +229,7 @@ const Employment = () => {
     }).then((response) => {
       if (response.ok) {
         setDialogOpen(true);
+        setIsModified(false);
       } else {
         console.error('Failed to save timesheet');
       }
@@ -366,6 +370,7 @@ const Employment = () => {
             </Typography>
             <Button
               onClick={handleSave}
+              disabled={!isModified}
               variant="contained"
               color="primary"
               sx={{
