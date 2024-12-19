@@ -229,7 +229,6 @@ const Registration = () => {
             }
             return item;
           });
-          console.log(processedData);
           setSearchRows(processedData);
         } else {
           console.error('Search request failed:', response.statusText);

@@ -294,13 +294,11 @@ func handleSaveCart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var classes []string
-	fmt.Println(request.Classes)
 	for _, clas := range request.Classes {
 		classes = append(classes, clas["class"].(string)+" "+clas["code"].(string)+"-"+clas["section"].(string))
 	}
 	err = updateCart(classes, request.Id)
 	if err != nil {
-		fmt.Println(err)
 		sendConflict(w, err.Error())
 	} else {
 		w.WriteHeader(http.StatusOK)

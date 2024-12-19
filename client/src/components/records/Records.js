@@ -122,7 +122,6 @@ const Records = () => {
       if (!response.ok) {
         throw new Error("Failed to upload file");
       }
-      console.log("File uploaded successfully");
       handleUploadDialogClose();
     } catch (error) {
       console.error("Error uploading file:", error);

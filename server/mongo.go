@@ -413,7 +413,6 @@ func getTimesheet(id string) ([]bson.M, error) {
 		}
 		return nil, fmt.Errorf("failed to fetch 'timesheet': %v", err)
 	}
-	fmt.Println(result)
 	return result.Timesheet, nil
 }
 
