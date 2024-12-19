@@ -713,3 +713,20 @@ func getHousingDate(id string) (time.Time, error) {
 	}
 	return result.Housing, nil
 }
+
+func checkLogin(id string, hash string) (bool, error) {
+	collection := dbClient.Database(dbName).Collection("users")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	filter := bson.M{
+		"id": id,
+	}
+	var result struct {
+		Passhash string `bson:"passHash"`
+	}
+	err := collection.FindOne(ctx, filter).Decode(&result)
+	if err != nil {
+		return false, fmt.Errorf("user not found")
+	}
+	return hash == result.Passhash, nil
+}

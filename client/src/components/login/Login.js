@@ -1,11 +1,45 @@
-import React from 'react';
-import { TextField, Button, Box, Typography } from '@mui/material';
+import React, { useState } from 'react';
+import { TextField, Button, Box, Typography, Alert } from '@mui/material';
+import { sha256 } from 'js-sha256';
+import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
+  const [polarId, setPolarId] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
+
+  const handleLogin = async () => {
+    setError('');
+    const passhash = sha256(password);
+    console.log(passhash)
+    try {
+      const response = await fetch('http://localhost:8080/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id: polarId, passhash }),
+      });
+      if (response.status === 404) {
+        setError('Polar ID does not exist');
+      } else if (response.status === 409) {
+        setError('Wrong password');
+      } else if (response.status === 200) {
+        navigate('/home');
+      } else {
+        setError('An unexpected error occurred');
+      }
+    } catch (err) {
+      setError('Failed to connect to the server');
+    }
+  };
+
   return (
     <Box
       sx={{
-        height: '100vh',
+        mt: '10vh',
+        height: '80vh',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
@@ -22,8 +56,8 @@ const Login = () => {
         <Typography
           variant="h2"
           sx={{
-              color: 'white',
-              fontWeight: 'bold',
+            color: 'white',
+            fontWeight: 'bold',
           }}
         >
           POLAR UNIVERSITY
@@ -40,22 +74,39 @@ const Login = () => {
           borderRadius: 2,
         }}
       >
-        <Typography
-          variant="h4"
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
+        <TextField
+          label="POLAR ID"
+          fullWidth
+          margin="normal"
+          value={polarId}
+          onChange={(e) => setPolarId(e.target.value)}
+          error={error === 'Polar ID does not exist'}
+        />
+        <TextField
+          label="Password"
+          fullWidth
+          type="password"
+          margin="normal"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          error={error === 'Wrong password'}
+        />
+        <Button
+          variant="contained"
+          fullWidth
+          onClick={handleLogin}
           sx={{
-            textAlign: 'center',
-            fontWeight: 'bold',
-          }}
-        >
-          LOGIN
-        </Typography>
-        <TextField label="Username" variant="outlined" fullWidth margin="normal" />
-        <TextField label="Password" variant="outlined" fullWidth type="password" margin="normal" />
-        <Button variant="contained" fullWidth 
-          sx={{ 
-            backgroundColor: 'gray', 
+            backgroundColor: '#800000',
             mt: 2,
-            height: "56px",
+            height: '56px',
+            ':hover': {
+              backgroundColor: '#470000',
+            },
           }}
         >
           Sign In

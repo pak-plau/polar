@@ -56,7 +56,30 @@ func enableCORS(next http.Handler) http.Handler {
 }
 
 func handleLogin(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("login")
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "Error reading req body", http.StatusInternalServerError)
+		return
+	}
+	var request struct {
+		Id       string `json:"id"`
+		Passhash string `json:"passhash"`
+	}
+	err = json.Unmarshal(body, &request)
+	fmt.Println(request)
+	if err != nil {
+		http.Error(w, "Error parsing JSON req body", http.StatusBadRequest)
+		return
+	}
+	verified, err := checkLogin(request.Id, request.Passhash)
+	if err != nil {
+		http.Error(w, "User doesn't exist", http.StatusNotFound)
+		return
+	}
+	if !verified {
+		http.Error(w, "Wrong password", http.StatusConflict)
+	}
+	w.WriteHeader(http.StatusOK)
 }
 
 func contains(results []bson.M, result bson.M) bool {
