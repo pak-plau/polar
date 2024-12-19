@@ -1,8 +1,15 @@
 import React from 'react';
 import { Box, Typography, Button } from '@mui/material';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth';
 
 const Dashboard = () => {
+  const { logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+  }
+
   return (
     <Box
       sx={{
@@ -37,6 +44,7 @@ const Dashboard = () => {
         </Link>
         <Link to="/" style={{ textDecoration: 'none' }}>
           <Button
+            onClick={handleLogout}
             sx={{
               height: '40px',
               backgroundColor: 'gray',

@@ -1,27 +1,29 @@
-import { Route, Routes, useLocation } from "react-router-dom"
-import './stylesheets/App.css';
-import Dashboard from "./components/dashboard/Dashboard"
+import { Route, Routes, useLocation, Navigate } from "react-router-dom";
+import "./stylesheets/App.css";
+import Dashboard from "./components/dashboard/Dashboard";
 import Login from "./components/login/Login";
 import Home from "./components/home/Home";
-import Registration from "./components/registration/Registration"
-import Records from "./components/records/Records"
-import Employment from "./components/employment/Employment"
-import { Box } from "@mui/material";
+import Registration from "./components/registration/Registration";
+import Records from "./components/records/Records";
+import Employment from "./components/employment/Employment";
+import { useState, useEffect } from "react";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import { AuthProvider } from "./hooks/useAuth";
 
 function App() {
   const location = useLocation();
   const hideNavPaths = ["/"];
   return (
-    <Box>
+    <AuthProvider>
       {!hideNavPaths.includes(location.pathname) && <Dashboard />}
       <Routes>
         <Route path="/" element={<Login />} />
-        <Route path="/home" element={<Home />} />
-        <Route path="/registration" element={<Registration />} />
-        <Route path="/records" element={<Records />} />
-        <Route path="/employment" element={<Employment />} />
+        <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+        <Route path="/registration" element={<ProtectedRoute><Registration /></ProtectedRoute>} />
+        <Route path="/records" element={<ProtectedRoute><Records /></ProtectedRoute>} />
+        <Route path="/employment" element={<ProtectedRoute><Employment /></ProtectedRoute>} />
       </Routes>
-    </Box>
+    </AuthProvider>
   );
 }
 
