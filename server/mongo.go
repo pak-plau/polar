@@ -227,6 +227,7 @@ func parseCSVAndInsertIntoUsers(csvFilePath string) error {
 			return fmt.Errorf("row length does not match header length: %v", row)
 		}
 		document := bson.M{}
+		var userId string
 		for i, value := range row {
 			if headers[i] == "credits" || headers[i] == "gpa" {
 				credits, convErr := strconv.ParseFloat(value, 64)
@@ -234,7 +235,7 @@ func parseCSVAndInsertIntoUsers(csvFilePath string) error {
 					return fmt.Errorf("failed to convert 'credits' to a number: %v", convErr)
 				}
 				document[headers[i]] = credits
-			} else if headers[i] == "classes" {
+			} else if headers[i] == "classes" && value != "" {
 				var grades = make(map[string]string)
 				classes := strings.Split(value, ";")
 				for _, class := range classes {
@@ -250,6 +251,16 @@ func parseCSVAndInsertIntoUsers(csvFilePath string) error {
 				document[headers[i]] = temp
 			} else {
 				document[headers[i]] = value
+				if headers[i] == "id" {
+					userId = value
+				}
+			}
+		}
+		if userId != "" {
+			folderPath := "./user_records/" + userId
+			err := os.MkdirAll(folderPath, os.ModePerm)
+			if err != nil {
+				return fmt.Errorf("failed to create folder for user %s: %v", userId, err)
 			}
 		}
 		documents = append(documents, document)

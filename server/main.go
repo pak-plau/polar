@@ -392,7 +392,7 @@ func handleGetRecords(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error parsing JSON req body", http.StatusBadRequest)
 		return
 	}
-	files, err := os.ReadDir("./" + request.Id)
+	files, err := os.ReadDir("./user_records/" + request.Id)
 	if err != nil {
 		http.Error(w, "Error reading directory", http.StatusInternalServerError)
 		return
@@ -423,7 +423,7 @@ func handleGetRecord(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error parsing JSON req body", http.StatusBadRequest)
 		return
 	}
-	file, err := os.Open("./" + request.Id + "/" + request.Filename + ".pdf")
+	file, err := os.Open("./user_records/" + request.Id + "/" + request.Filename + ".pdf")
 	if err != nil {
 		http.Error(w, "File not found", http.StatusNotFound)
 		return

@@ -96,7 +96,7 @@ const Records = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ id: "114640750", filename }),
+        body: JSON.stringify({ id: "114640750", filename: filename }),
       });
 
       if (!response.ok) {
