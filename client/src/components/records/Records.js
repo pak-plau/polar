@@ -336,9 +336,9 @@ const Records = () => {
             onClick={handleUpload}
             disabled={!file}
             sx={{
-              backgroundColor: file ? "#800000" : "lightgray",
+              backgroundColor: file ? "#800000" : "white",
               color: "white",
-              "&:hover": file ? { backgroundColor: "#470000" } : {},
+              "&:hover": { backgroundColor: "#470000" },
             }}
           >
             Upload

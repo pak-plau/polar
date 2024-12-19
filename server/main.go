@@ -20,6 +20,7 @@ func main() {
 	mux.HandleFunc("/login", handleLogin)
 	mux.HandleFunc("/search", handleSearchClasses)
 	mux.HandleFunc("/saveTimesheet", handleSaveTimesheet)
+	mux.HandleFunc("/getTimesheet", handleGetTimesheet)
 	mux.HandleFunc("/checkPrereq", handleCheckPrereq)
 	mux.HandleFunc("/saveCart", handleSaveCart)
 	mux.HandleFunc("/getCart", handleGetCart)
@@ -28,6 +29,8 @@ func main() {
 	mux.HandleFunc("/getRecords", handleGetRecords)
 	mux.HandleFunc("/getRecord", handleGetRecord)
 	mux.HandleFunc("/putRecord", handlePutRecord)
+	mux.HandleFunc("/getEnrollmentDate", handleGetEnrollmentDate)
+	mux.HandleFunc("/getHousingDate", handleGetHousingDate)
 	fmt.Println("Starting server at port 8080")
 	log.Fatal(http.ListenAndServe("0.0.0.0:8080", enableCORS(logRequests(mux))))
 }
@@ -170,12 +173,38 @@ func handleSaveTimesheet(w http.ResponseWriter, r *http.Request) {
 		temp["timeOut"] = timeOut
 		sheet = append(sheet, temp)
 	}
-	err = updateTimeSheet(sheet, request.Id)
+	err = updateTimesheet(sheet, request.Id)
 	if err != nil {
 		http.Error(w, "Error updating timesheet to MongoDB", http.StatusInternalServerError)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
+}
+
+func handleGetTimesheet(w http.ResponseWriter, r *http.Request) {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "Error reading req body", http.StatusInternalServerError)
+		return
+	}
+	var request struct {
+		Id string `json:"id"`
+	}
+	err = json.Unmarshal(body, &request)
+	if err != nil {
+		http.Error(w, "Error parsing JSON req body", http.StatusBadRequest)
+		return
+	}
+	timesheet, err := getTimesheet(request.Id)
+	if err != nil {
+		http.Error(w, "Error with getting cart", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(timesheet)
+	if err != nil {
+		http.Error(w, "Error sending response", http.StatusInternalServerError)
+	}
 }
 
 func handleCheckPrereq(w http.ResponseWriter, r *http.Request) {
@@ -421,7 +450,6 @@ func handleGetRecord(w http.ResponseWriter, r *http.Request) {
 		Filename string `json:"filename"`
 	}
 	err = json.Unmarshal(body, &request)
-	fmt.Println(request)
 	if err != nil {
 		http.Error(w, "Error parsing JSON req body", http.StatusBadRequest)
 		return
@@ -476,4 +504,56 @@ func handlePutRecord(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusOK)
+}
+
+func handleGetEnrollmentDate(w http.ResponseWriter, r *http.Request) {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "Error reading req body", http.StatusInternalServerError)
+		return
+	}
+	var request struct {
+		Id string `json:"id"`
+	}
+	err = json.Unmarshal(body, &request)
+	if err != nil {
+		http.Error(w, "Error parsing JSON req body", http.StatusBadRequest)
+		return
+	}
+	enrollment, err := getEnrollmentDate(request.Id)
+	if err != nil {
+		http.Error(w, "Error with getting cart", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(enrollment)
+	if err != nil {
+		http.Error(w, "Error sending response", http.StatusInternalServerError)
+	}
+}
+
+func handleGetHousingDate(w http.ResponseWriter, r *http.Request) {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "Error reading req body", http.StatusInternalServerError)
+		return
+	}
+	var request struct {
+		Id string `json:"id"`
+	}
+	err = json.Unmarshal(body, &request)
+	if err != nil {
+		http.Error(w, "Error parsing JSON req body", http.StatusBadRequest)
+		return
+	}
+	housing, err := getHousingDate(request.Id)
+	if err != nil {
+		http.Error(w, "Error with getting cart", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(housing)
+	if err != nil {
+		http.Error(w, "Error sending response", http.StatusInternalServerError)
+	}
 }

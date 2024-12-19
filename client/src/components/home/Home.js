@@ -1,10 +1,48 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Box, Card, CardContent, Typography, Table, TableBody, TableRow, TableCell } from "@mui/material";
 
+const formatter = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true, timeZone: "UTC" });
+
 const Home = () => {
-  const holds = ["Mandatory Health Insurance"]
-  const todo = ["Complete Health Waiver by 8/26"]
-  const dates = ["Class Enrollment: February 2nd 2024, 12pm", "Housing Registration: April 6th 2024, 3pm"]
+  const [enrollmentDate, setEnrollmentDate] = useState(null);
+  const [housingDate, setHousingDate] = useState(null);
+
+  const holds = ["Mandatory Health Insurance"];
+  const todo = ["Complete Health Waiver by 8/26"];
+  
+  useEffect(() => {
+    const fetchDates = async () => {
+      try {
+        const enrollmentResponse = await fetch("http://localhost:8080/getEnrollmentDate", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ id: "114640750" }),
+        });
+        if (!enrollmentResponse.ok) {
+          throw new Error("Failed to fetch enrollment date");
+        }
+        const enrollmentData = await enrollmentResponse.json();
+        setEnrollmentDate(new Date(enrollmentData));
+        const housingResponse = await fetch("http://localhost:8080/getHousingDate", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ id: "114640750" }),
+        });
+        if (!housingResponse.ok) {
+          throw new Error("Failed to fetch housing date");
+        }
+        const housingData = await housingResponse.json();
+        setHousingDate(new Date(housingData));
+      } catch (error) {
+        console.error("Error fetching dates:", error);
+      }
+    };
+    fetchDates();
+  }, []);
 
   return (
     <Box
@@ -51,6 +89,7 @@ const Home = () => {
           </Table>
         </CardContent>
       </Card>
+
       <Card
         sx={{
           width: "80%",
@@ -74,7 +113,7 @@ const Home = () => {
           </Typography>
         </Box>
         <CardContent>
-        <Table>
+          <Table>
             <TableBody>
               {todo.map((task, idx) => (
                 <TableRow key={idx}>
@@ -85,6 +124,7 @@ const Home = () => {
           </Table>
         </CardContent>
       </Card>
+
       <Card
         sx={{
           width: "80%",
@@ -108,13 +148,14 @@ const Home = () => {
           </Typography>
         </Box>
         <CardContent>
-        <Table>
+          <Table>
             <TableBody>
-              {dates.map((date, idx) => (
-                <TableRow key={idx}>
-                  <TableCell>{date}</TableCell>
-                </TableRow>
-              ))}
+              <TableRow>
+                <TableCell>{`Class Enrollment: ${formatter.format(enrollmentDate)}`}</TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>{`Housing Registration: ${formatter.format(housingDate)}`}</TableCell>
+              </TableRow>
             </TableBody>
           </Table>
         </CardContent>

@@ -249,6 +249,30 @@ func parseCSVAndInsertIntoUsers(csvFilePath string) error {
 			} else if headers[i] == "current" {
 				var temp []map[string]string
 				document[headers[i]] = temp
+			} else if headers[i] == "enrollment" || headers[i] == "housing" {
+				parts := strings.Split(value, "/")
+				month, err := strconv.Atoi(parts[0])
+				if err != nil {
+					return fmt.Errorf("Error parsing month: %v", err)
+				}
+				day, err := strconv.Atoi(parts[1])
+				if err != nil {
+					return fmt.Errorf("Error parsing day: %v", err)
+				}
+				year, err := strconv.Atoi(parts[2])
+				if err != nil {
+					return fmt.Errorf("Error parsing year: %v", err)
+				}
+				timeParts := strings.Split(parts[3], ":")
+				hour, err := strconv.Atoi(timeParts[0])
+				if err != nil {
+					return fmt.Errorf("Error parsing hour %v", err)
+				}
+				minute, err := strconv.Atoi(timeParts[1])
+				if err != nil {
+					return fmt.Errorf("Error parsing minute: %v", err)
+				}
+				document[headers[i]] = time.Date(year, time.Month(month), day, hour, minute, 0, 0, time.UTC)
 			} else {
 				document[headers[i]] = value
 				if headers[i] == "id" {
@@ -351,7 +375,7 @@ func searchSBC(query string) ([]bson.M, error) {
 	return results, nil
 }
 
-func updateTimeSheet(timesheet []map[string]interface{}, id string) error {
+func updateTimesheet(timesheet []map[string]interface{}, id string) error {
 	collection := dbClient.Database(dbName).Collection("users")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -370,6 +394,27 @@ func updateTimeSheet(timesheet []map[string]interface{}, id string) error {
 		return fmt.Errorf("timesheet could not be added to %v", id)
 	}
 	return nil
+}
+
+func getTimesheet(id string) ([]bson.M, error) {
+	collection := dbClient.Database(dbName).Collection("users")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	filter := bson.M{
+		"id": id,
+	}
+	var result struct {
+		Timesheet []bson.M `bson:"timesheet"`
+	}
+	err := collection.FindOne(ctx, filter).Decode(&result)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, fmt.Errorf("user not found")
+		}
+		return nil, fmt.Errorf("failed to fetch 'timesheet': %v", err)
+	}
+	fmt.Println(result)
+	return result.Timesheet, nil
 }
 
 func checkMajors(majors string, id string) (bool, error) {
@@ -628,4 +673,44 @@ func getGPA(id string) (float64, error) {
 		return 0, fmt.Errorf("failed to fetch 'current': %v", err)
 	}
 	return result.Gpa, nil
+}
+
+func getEnrollmentDate(id string) (time.Time, error) {
+	collection := dbClient.Database(dbName).Collection("users")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	filter := bson.M{
+		"id": id,
+	}
+	var result struct {
+		Enrollment time.Time `bson:"enrollment"`
+	}
+	err := collection.FindOne(ctx, filter).Decode(&result)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return time.Time{}, fmt.Errorf("user not found")
+		}
+		return time.Time{}, fmt.Errorf("failed to fetch 'enrollment': %v", err)
+	}
+	return result.Enrollment, nil
+}
+
+func getHousingDate(id string) (time.Time, error) {
+	collection := dbClient.Database(dbName).Collection("users")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	filter := bson.M{
+		"id": id,
+	}
+	var result struct {
+		Housing time.Time `bson:"housing"`
+	}
+	err := collection.FindOne(ctx, filter).Decode(&result)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return time.Time{}, fmt.Errorf("user not found")
+		}
+		return time.Time{}, fmt.Errorf("failed to fetch 'housing': %v", err)
+	}
+	return result.Housing, nil
 }

@@ -18,59 +18,40 @@ const Employment = () => {
   const [timeInError, setTimeInError] = useState(false);
   const [timeOutError, setTimeOutError] = useState(false);
   const [timeOutBefore, setTimeOutBefore] = useState(false);
-  const columns = [
-    { field: 'date', headerName: 'Date', flex: 2 },
-    { field: 'timeIn', headerName: 'Time In', flex: 2 },
-    { field: 'timeOut', headerName: 'Time Out', flex: 2 },
-    { field: 'hours', headerName: 'Hours', flex: 1, type: 'number', align: 'center', headerAlign: 'center' },
-    { field: 'status', headerName: 'Status', flex: 1, align: 'center', headerAlign: 'center' },
-    {
-      field: 'delete',
-      headerName: '',
-      flex: 1,
-      renderCell: (params) => {
-        if (params.id === 'add') {
-          return (
-            <Button
-              onClick={openAdd}
-              sx={{
-                backgroundColor: '#800000',
-                color: 'white',
-                padding: 1,
-                minWidth: 'auto',
-                width: 36,
-                height: 36,
-                '&:hover': {
-                  backgroundColor: '#470000',
-                },
-              }}
-            >
-              <AddIcon />
-            </Button>
-          );
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+  const [rowToDelete, setRowToDelete] = useState(null);
+
+  useEffect(() => {
+    const fetchTimesheetData = async () => {
+      try {
+        const response = await fetch("http://localhost:8080/getTimesheet", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ id: "114640750" }),
+        });
+        if (!response.ok) {
+          throw new Error("Failed to fetch timesheet data");
         }
-        return (
-          <Button
-            onClick={() => handleDeleteRow(params.id)}
-            sx={{
-              backgroundColor: '#800000',
-              color: 'white',
-              fontWeight: 'bold',
-              padding: 1,
-              minWidth: 'auto',
-              width: 36,
-              height: 36,
-              '&:hover': {
-                backgroundColor: '#470000',
-              },
-            }}
-          >
-            <DeleteIcon />
-          </Button>
-        );
-      },
-    },
-  ];
+        const data = await response.json();
+        if (data != null) {
+          const formattedRows = data.map((entry, index) => ({
+            id: index,
+            status: entry.status,
+            timeIn: new Date(entry.timeIn),
+            timeOut: new Date(entry.timeOut),
+          }));
+          setRows(formattedRows);
+        } else {
+          setRows([]);
+        }
+      } catch (error) {
+        console.error("Error fetching timesheet data:", error);
+      }
+    };
+    fetchTimesheetData();
+  }, []);
 
   const openAdd = () => {
     setAddOpened(true);
@@ -188,12 +169,19 @@ const Employment = () => {
     let hours = dateTime.getHours();
     let minutes = dateTime.getMinutes();
     let suffix = hours < 12 ? 'AM' : 'PM';
-    hours %= 12;
+    if (hours === 0) {
+      hours = 12;
+    } else if (hours > 12) {
+      hours -= 12;
+    }
     minutes = minutes < 10 ? '0' + minutes : minutes;
     return `${hours}:${minutes}${suffix}`;
   };
 
   const displayRows = (rows) => {
+    if (rows.length === 0) {
+      return [];
+    }
     return rows.map((row) => ({
       id: row.id,
       date: row.id !== 'add' ? `${row.timeIn.getMonth() + 1}/${row.timeIn.getDate()}/${row.timeIn.getFullYear()}` : '',
@@ -207,12 +195,11 @@ const Employment = () => {
   const handleDeleteRow = (id) => {
     const rowToDelete = rows.find((row) => row.id === id);
     if (rowToDelete && rowToDelete.status === 'A') {
-      alert('Cannot delete a row with status "A"');
-      return;
+      setRowToDelete(rowToDelete);
+      setOpenDeleteDialog(true);
+    } else {
+      setRows((prevRows) => prevRows.filter((row) => row.id !== id));
     }
-    setRows((prevRows) => {
-      return prevRows.filter((row) => row.id !== id);
-    });
   };  
 
   const handleAddRow = (date, timeIn, timeOut) => {
@@ -230,7 +217,7 @@ const Employment = () => {
       .filter((row) => row.id !== 'add')
       .map(({ id, delete: _, ...rest }) => rest);
     fetch('http://localhost:8080/saveTimesheet', {
-      method: 'POST',
+      method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
@@ -287,7 +274,59 @@ const Employment = () => {
         <CardContent>
           <DataGrid
             rows={[...displayRows(rows), { id: 'add' }]}
-            columns={columns}
+            columns={[
+              { field: 'date', headerName: 'Date', flex: 2 },
+              { field: 'timeIn', headerName: 'Time In', flex: 2 },
+              { field: 'timeOut', headerName: 'Time Out', flex: 2 },
+              { field: 'hours', headerName: 'Hours', flex: 1, type: 'number', align: 'center', headerAlign: 'center' },
+              { field: 'status', headerName: 'Status', flex: 1, align: 'center', headerAlign: 'center' },
+              {
+                field: 'delete',
+                headerName: '',
+                flex: 1,
+                renderCell: (params) => {
+                  if (params.id === 'add') {
+                    return (
+                      <Button
+                        onClick={openAdd}
+                        sx={{
+                          backgroundColor: '#800000',
+                          color: 'white',
+                          padding: 1,
+                          minWidth: 'auto',
+                          width: 36,
+                          height: 36,
+                          '&:hover': {
+                            backgroundColor: '#470000',
+                          },
+                        }}
+                      >
+                        <AddIcon />
+                      </Button>
+                    );
+                  }
+                  return (
+                    <Button
+                      onClick={() => handleDeleteRow(params.id)}
+                      sx={{
+                        backgroundColor: '#800000',
+                        color: 'white',
+                        fontWeight: 'bold',
+                        padding: 1,
+                        minWidth: 'auto',
+                        width: 36,
+                        height: 36,
+                        '&:hover': {
+                          backgroundColor: '#470000',
+                        },
+                      }}
+                    >
+                      <DeleteIcon />
+                    </Button>
+                  );
+                },
+              },
+            ]}
             hideFooter
             disableColumnMenu
             disableColumnResize
@@ -337,6 +376,30 @@ const Employment = () => {
           </Box>
         </CardContent>
       </Card>
+      <Dialog open={openDeleteDialog} onClose={() => setOpenDeleteDialog(false)}>
+        <DialogTitle sx={{ backgroundColor: '#800000', color: 'white' }}>
+          Confirm Deletion
+        </DialogTitle>
+        <DialogContent sx={{ mt: 1 }}>
+          <Typography>
+            You cannot delete rows that have been approved
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setOpenDeleteDialog(false)}
+            sx={{
+              backgroundColor: 'gray',
+              color: 'white',
+              '&:hover': {
+                backgroundColor: '#646464',
+              },
+            }}
+          >
+            Cancel
+          </Button>
+        </DialogActions>
+      </Dialog>
       <Dialog open={addOpened} onClose={closeAdd}>
         <DialogTitle sx={{ backgroundColor: '#800000', color: 'white' }}>Add Entry</DialogTitle>
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -409,7 +472,7 @@ const Employment = () => {
               },
             }}
           >
-            Close
+            Cancel
           </Button>
           <Button
             onClick={() => {
