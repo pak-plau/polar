@@ -8,7 +8,7 @@ const Home = () => {
   const [housingDate, setHousingDate] = useState(null);
 
   const holds = ["Mandatory Health Insurance"];
-  const todo = ["Complete Health Waiver by 8/26"];
+  const todo = ["Complete Health Waiver by August 26th, 2024"];
   
   useEffect(() => {
     const fetchDates = async () => {
