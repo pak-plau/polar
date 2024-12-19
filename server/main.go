@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -26,6 +27,7 @@ func main() {
 	mux.HandleFunc("/getGPA", handleGetGPA)
 	mux.HandleFunc("/getRecords", handleGetRecords)
 	mux.HandleFunc("/getRecord", handleGetRecord)
+	mux.HandleFunc("/putRecord", handlePutRecord)
 	fmt.Println("Starting server at port 8080")
 	log.Fatal(http.ListenAndServe("0.0.0.0:8080", enableCORS(logRequests(mux))))
 }
@@ -419,6 +421,7 @@ func handleGetRecord(w http.ResponseWriter, r *http.Request) {
 		Filename string `json:"filename"`
 	}
 	err = json.Unmarshal(body, &request)
+	fmt.Println(request)
 	if err != nil {
 		http.Error(w, "Error parsing JSON req body", http.StatusBadRequest)
 		return
@@ -439,4 +442,38 @@ func handleGetRecord(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Error sending file", http.StatusInternalServerError)
 		return
 	}
+}
+
+func handlePutRecord(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseMultipartForm(10 << 20)
+	if err != nil {
+		http.Error(w, "Unable to parse form", http.StatusBadRequest)
+		return
+	}
+	id := r.FormValue("id")
+	file, _, err := r.FormFile("file")
+	if err != nil {
+		http.Error(w, "Unable to retrieve file", http.StatusBadRequest)
+		return
+	}
+	defer file.Close()
+	filename := r.FormValue("filename")
+	if filename == "" {
+		http.Error(w, "Filename is required", http.StatusBadRequest)
+		return
+	}
+	dir := fmt.Sprintf("./user_records/%s", id)
+	filePath := filepath.Join(dir, filename+".pdf")
+	outFile, err := os.Create(filePath)
+	if err != nil {
+		http.Error(w, "Failed to create file", http.StatusInternalServerError)
+		return
+	}
+	defer outFile.Close()
+	_, err = io.Copy(outFile, file)
+	if err != nil {
+		http.Error(w, "Failed to save file", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
 }

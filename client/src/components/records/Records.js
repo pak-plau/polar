@@ -14,6 +14,11 @@ import {
   DialogActions,
   DialogContent,
   DialogContentText,
+  Radio,
+  RadioGroup,
+  FormControlLabel,
+  FormControl,
+  TextField
 } from "@mui/material";
 
 const Records = () => {
@@ -21,6 +26,10 @@ const Records = () => {
   const [transcript, setTranscript] = useState([]);
   const [gpa, setGpa] = useState(null);
   const [otherRecords, setOtherRecords] = useState([]);
+  const [openUploadDialog, setOpenUploadDialog] = useState(false);
+  const [selectedRecordType, setSelectedRecordType] = useState("Covid-19 Immunization Record");
+  const [file, setFile] = useState(null);
+  const [fileName, setFileName] = useState("");
 
   const fetchUnofficialTranscript = async () => {
     try {
@@ -68,15 +77,10 @@ const Records = () => {
     try {
       const response = await fetch("http://localhost:8080/getRecords", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: "114640750" }),
       });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch other records");
-      }
+      if (!response.ok) throw new Error("Failed to fetch other records");
       const data = await response.json();
       setOtherRecords(data || []);
     } catch (error) {
@@ -88,6 +92,42 @@ const Records = () => {
   useEffect(() => {
     fetchOtherRecords();
   }, []);
+
+  const handleUploadDialogOpen = () => setOpenUploadDialog(true);
+  const handleUploadDialogClose = () => {
+    setOpenUploadDialog(false);
+    setFile(null);
+    setFileName("");
+  };
+
+  const handleRecordTypeChange = (event) => setSelectedRecordType(event.target.value);
+  const handleFileChange = (event) => {
+    const selectedFile = event.target.files[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+      setFileName(selectedFile.name);
+    }
+  };
+
+  const handleUpload = async () => {
+    const formData = new FormData();
+    formData.append("id", "123456789");
+    formData.append("file", file);
+    formData.append("filename", selectedRecordType);
+    try {
+      const response = await fetch("http://localhost:8080/putRecord", {
+        method: "PUT",
+        body: formData,
+      });
+      if (!response.ok) {
+        throw new Error("Failed to upload file");
+      }
+      console.log("File uploaded successfully");
+      handleUploadDialogClose();
+    } catch (error) {
+      console.error("Error uploading file:", error);
+    }
+  };  
 
   const downloadRecord = async (filename) => {
     try {
@@ -136,27 +176,9 @@ const Records = () => {
         overflowY: "auto",
       }}
     >
-      <Card
-        sx={{
-          width: "80%",
-          maxWidth: 600,
-          backgroundColor: "#ffffff",
-          borderRadius: 1,
-          boxShadow: 3,
-        }}
-      >
-        <Box
-          sx={{
-            backgroundColor: "#800000",
-            color: "#ffffff",
-            p: 1,
-            borderTopLeftRadius: 4,
-            borderTopRightRadius: 4,
-          }}
-        >
-          <Typography variant="h6" fontWeight="bold">
-            Academic Records
-          </Typography>
+      <Card sx={{ width: "80%", maxWidth: 600, borderRadius: 1, boxShadow: 3 }}>
+        <Box sx={{ backgroundColor: "#800000", color: "#fff", p: 1, borderRadius: "4px 4px 0 0" }}>
+          <Typography variant="h6" fontWeight="bold">Academic Records</Typography>
         </Box>
         <CardContent>
           <Button
@@ -167,32 +189,32 @@ const Records = () => {
               borderColor: "lightgray",
             }}
             onClick={handleDialogOpen}
-          >
-            View Unofficial Transcript
-          </Button>
+          >View Unofficial Transcript</Button>
         </CardContent>
       </Card>
-      <Card
-        sx={{
-          width: "80%",
-          maxWidth: 600,
-          backgroundColor: "#ffffff",
-          borderRadius: 1,
-          boxShadow: 3,
-        }}
-      >
+      <Card sx={{ width: "80%", maxWidth: 600, borderRadius: 1, boxShadow: 3 }}>
         <Box
           sx={{
             backgroundColor: "#800000",
-            color: "#ffffff",
+            color: "#fff",
             p: 1,
-            borderTopLeftRadius: 4,
-            borderTopRightRadius: 4,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            borderRadius: "4px 4px 0 0",
           }}
         >
-          <Typography variant="h6" fontWeight="bold">
-            Other Records
-          </Typography>
+          <Typography variant="h6" fontWeight="bold">Other Records</Typography>
+          <Button
+            variant="contained"
+            sx={{
+              backgroundColor: "gray",
+              "&:hover": { backgroundColor: "#646464" },
+            }}
+            onClick={handleUploadDialogOpen}
+          >
+            Upload
+          </Button>
         </Box>
         <CardContent>
           <Table>
@@ -205,10 +227,9 @@ const Records = () => {
                       onClick={() => downloadRecord(record.slice(0, -4))}
                       fullWidth
                       sx={{
-                        backgroundColor: 'white',
+                        backgroundColor: "white",
                         color: "black",
-                        borderColor: "lightgray",
-                      }}
+                        borderColor: "lightgray" }}
                     >
                       {record.slice(0, -4)}
                     </Button>
@@ -238,6 +259,89 @@ const Records = () => {
         <DialogActions>
           <Button onClick={handleDialogClose} color="primary">
             Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={openUploadDialog} onClose={handleUploadDialogClose}>
+        <DialogTitle sx={{ backgroundColor: "#800000", color: "white" }}>Upload Record</DialogTitle>
+        <DialogContent sx={{ mt: 1 }}>
+          <FormControl>
+            <RadioGroup value={selectedRecordType} onChange={handleRecordTypeChange}>
+              <FormControlLabel value="Covid-19 Immunization Record" control={<Radio />} label="Covid-19 Immunization Record" />
+              <FormControlLabel value="FERPA Release Form" control={<Radio />} label="FERPA Release Form" />
+              <FormControlLabel value="Immunization Record" control={<Radio />} label="Immunization Record" />
+              <FormControlLabel value="Insurance Waiver Form" control={<Radio />} label="Insurance Waiver Form" />
+            </RadioGroup>
+          </FormControl>
+          <input
+            type="file"
+            onChange={handleFileChange}
+            style={{ display: "none" }}
+            id="file-upload"
+          />
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 1 }}>
+            <label htmlFor="file-upload">
+              <Button
+                variant="contained"
+                component="span"
+                sx={{
+                  fontSize: ".75rem",
+                  textAlign: "center",
+                  backgroundColor: "#800000",
+                  color: "#ffffff",
+                  "&:hover": { backgroundColor: "#470000" },
+                }}
+              >
+                Choose File
+              </Button>
+            </label>
+            <TextField
+              value={fileName}
+              label="File Name"
+              type="text"
+              fullWidth
+              variant="outlined"
+              slotProps={{
+                input: {
+                  readOnly: true,
+                },
+              }}
+              sx={{
+                color: "#000000",
+                backgroundColor: "#ffffff",
+                borderColor: "black",
+                input: {
+                  color: "#000000",
+                },
+                "& .MuiInputLabel-root": {
+                  color: "#000000",
+                },
+              }}
+              required
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={handleUploadDialogClose}
+            sx={{
+              backgroundColor: "gray",
+              color: "white",
+              "&:hover": { backgroundColor: "#646464" },
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleUpload}
+            disabled={!file}
+            sx={{
+              backgroundColor: file ? "#800000" : "lightgray",
+              color: "white",
+              "&:hover": file ? { backgroundColor: "#470000" } : {},
+            }}
+          >
+            Upload
           </Button>
         </DialogActions>
       </Dialog>
