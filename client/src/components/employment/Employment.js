@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { DataGrid } from '@mui/x-data-grid';
-import { Typography, Card, Box, CardContent, Button, Dialog, DialogTitle, DialogActions, DialogContent } from '@mui/material';
+import { Typography, Card, Box, CardContent, Button, Dialog, DialogTitle, DialogActions, DialogContent, DialogContentText } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -20,6 +20,7 @@ const Employment = () => {
   const [timeOutBefore, setTimeOutBefore] = useState(false);
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [rowToDelete, setRowToDelete] = useState(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
     const fetchTimesheetData = async () => {
@@ -51,7 +52,7 @@ const Employment = () => {
       }
     };
     fetchTimesheetData();
-  }, []);
+  }, []);  
 
   const openAdd = () => {
     setAddOpened(true);
@@ -224,7 +225,7 @@ const Employment = () => {
       body: JSON.stringify({ timesheet: timesheetData, id:"114640750" }),
     }).then((response) => {
       if (response.ok) {
-        console.log('Timesheet saved successfully');
+        setDialogOpen(true);
       } else {
         console.error('Failed to save timesheet');
       }
@@ -233,6 +234,9 @@ const Employment = () => {
     });
   };
   
+  const handleDialogClose = () => {
+    setDialogOpen(false);
+  };
 
   const totalHours = rows
     .filter((row) => row.id !== 'add')
@@ -365,9 +369,9 @@ const Employment = () => {
               variant="contained"
               color="primary"
               sx={{
-                backgroundColor: 'gray',
+                backgroundColor: '#800000',
                 '&:hover': {
-                  backgroundColor: '#646464',
+                  backgroundColor: '#470000',
                 },
               }}
             >
@@ -376,6 +380,29 @@ const Employment = () => {
           </Box>
         </CardContent>
       </Card>
+      <Dialog open={dialogOpen} onClose={handleDialogClose}>
+        <DialogTitle sx={{ backgroundColor: '#800000', color: 'white' }}>Success</DialogTitle>
+        <DialogContent sx={{ display: 'flex', flexDirection: 'column' }}>
+          <DialogContentText sx={{ mt: 2, color: 'black' }}>
+            Timesheet successfully saved.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button 
+            onClick={handleDialogClose}
+            color="primary"
+            sx={{
+              backgroundColor: 'gray',
+              color: 'white',
+              '&:hover': {
+                backgroundColor: '#646464',
+              },
+            }}
+          >
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
       <Dialog open={openDeleteDialog} onClose={() => setOpenDeleteDialog(false)}>
         <DialogTitle sx={{ backgroundColor: '#800000', color: 'white' }}>
           Confirm Deletion
