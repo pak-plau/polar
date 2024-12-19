@@ -49,3 +49,5 @@ password: password
 polar id: 123456789
 password: password
 ```
+
+Feel free to add to the .csv files in /server
