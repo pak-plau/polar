@@ -30,6 +30,7 @@ const Records = () => {
   const [selectedRecordType, setSelectedRecordType] = useState("Covid-19 Immunization Record");
   const [file, setFile] = useState(null);
   const [fileName, setFileName] = useState("");
+  const id = localStorage.getItem("user").slice(1, -1);
 
   const fetchUnofficialTranscript = async () => {
     try {
@@ -38,7 +39,7 @@ const Records = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ id: "114640750" }),
+        body: JSON.stringify({ id: id }),
       });
 
       if (!response.ok) {
@@ -59,7 +60,7 @@ const Records = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ id: "114640750" }),
+        body: JSON.stringify({ id: id }),
       });
 
       if (!response.ok) {
@@ -78,7 +79,7 @@ const Records = () => {
       const response = await fetch("http://localhost:8080/getRecords", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: "114640750" }),
+        body: JSON.stringify({ id: id }),
       });
       if (!response.ok) throw new Error("Failed to fetch other records");
       const data = await response.json();
@@ -111,7 +112,7 @@ const Records = () => {
 
   const handleUpload = async () => {
     const formData = new FormData();
-    formData.append("id", "123456789");
+    formData.append("id", id);
     formData.append("file", file);
     formData.append("filename", selectedRecordType);
     try {
@@ -135,7 +136,7 @@ const Records = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ id: "114640750", filename: filename }),
+        body: JSON.stringify({ id: id, filename: filename }),
       });
 
       if (!response.ok) {

@@ -22,6 +22,7 @@ const Employment = () => {
   const [rowToDelete, setRowToDelete] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [isModified, setIsModified] = useState(false);
+  const id = localStorage.getItem("user").slice(1, -1);
 
   useEffect(() => {
     const fetchTimesheetData = async () => {
@@ -31,7 +32,7 @@ const Employment = () => {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ id: "114640750" }),
+          body: JSON.stringify({ id: id }),
         });
         if (!response.ok) {
           throw new Error("Failed to fetch timesheet data");
@@ -225,7 +226,7 @@ const Employment = () => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ timesheet: timesheetData, id:"114640750" }),
+      body: JSON.stringify({ timesheet: timesheetData, id: id }),
     }).then((response) => {
       if (response.ok) {
         setDialogOpen(true);

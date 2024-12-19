@@ -1,4 +1,4 @@
-import { Route, Routes, useLocation, Navigate } from "react-router-dom";
+import { Route, Routes, useLocation } from "react-router-dom";
 import "./stylesheets/App.css";
 import Dashboard from "./components/dashboard/Dashboard";
 import Login from "./components/login/Login";
@@ -6,7 +6,6 @@ import Home from "./components/home/Home";
 import Registration from "./components/registration/Registration";
 import Records from "./components/records/Records";
 import Employment from "./components/employment/Employment";
-import { useState, useEffect } from "react";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { AuthProvider } from "./hooks/useAuth";
 

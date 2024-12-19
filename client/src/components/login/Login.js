@@ -25,7 +25,7 @@ const Login = () => {
       } else if (response.status === 409) {
         setError("Wrong password");
       } else if (response.status === 200) {
-        await login({ polarId })
+        await login(polarId)
       } else {
         setError("An unexpected error occurred");
       }

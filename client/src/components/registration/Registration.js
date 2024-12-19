@@ -49,6 +49,7 @@ const Registration = () => {
   const [conflictClass, setConflictClass] = useState(null);
   const [hasChanges, setHasChanges] = useState(false);
   const savedCart = useRef([]);
+  const id = localStorage.getItem("user").slice(1, -1);
 
   useEffect(() => {
     fetchCartRows();
@@ -69,7 +70,7 @@ const Registration = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ id: "114640750" }),
+        body: JSON.stringify({ id: id }),
       });
       if (response.ok) {
         const data = await response.json();
@@ -148,7 +149,7 @@ const Registration = () => {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ prereq: selectedClass.prereq, id: "114640750" }),
+          body: JSON.stringify({ prereq: selectedClass.prereq, id: id }),
         });
         if (response.ok) {
           setCartRows((prevRows) => [...prevRows, selectedClass]);
@@ -246,7 +247,7 @@ const Registration = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ classes: cartRows, id: "114640750" }),
+        body: JSON.stringify({ classes: cartRows, id: id }),
       });
       if (response.ok) {
         await fetchCartRows();

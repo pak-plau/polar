@@ -33,7 +33,7 @@ const ClassInfo = ({ class1, code, title, description, prereq, sbc }) => {
                     <strong>Prerequisites: </strong>{formatPrereq()}
                 </Typography>
             }
-            {sbc[0] != "" > 0 &&
+            {sbc.length > 1 &&
                 <Typography variant="body2">
                     <strong>SBC: </strong>{sbc.join(", ")}
                 </Typography>

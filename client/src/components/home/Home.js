@@ -9,6 +9,7 @@ const Home = () => {
 
   const holds = ["Mandatory Health Insurance"];
   const todo = ["Complete Health Waiver by August 26th, 2024"];
+  const id = localStorage.getItem("user").slice(1, -1);
   
   useEffect(() => {
     const fetchDates = async () => {
@@ -18,7 +19,7 @@ const Home = () => {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ id: "114640750" }),
+          body: JSON.stringify({ id: id }),
         });
         if (!enrollmentResponse.ok) {
           throw new Error("Failed to fetch enrollment date");
@@ -30,7 +31,7 @@ const Home = () => {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ id: "114640750" }),
+          body: JSON.stringify({ id: id }),
         });
         if (!housingResponse.ok) {
           throw new Error("Failed to fetch housing date");
