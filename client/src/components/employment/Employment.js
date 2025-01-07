@@ -7,6 +7,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import config from '../../config.js';
 
 const Employment = () => {
   const [rows, setRows] = useState([]);
@@ -27,7 +28,7 @@ const Employment = () => {
   useEffect(() => {
     const fetchTimesheetData = async () => {
       try {
-        const response = await fetch("http://localhost:8080/getTimesheet", {
+        const response = await fetch(`${config.serverUrl}/getTimesheet`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -221,7 +222,7 @@ const Employment = () => {
     const timesheetData = rows
       .filter((row) => row.id !== 'add')
       .map(({ id, delete: _, ...rest }) => rest);
-    fetch('http://localhost:8080/saveTimesheet', {
+    fetch(`${config.serverUrl}/saveTimesheet`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',

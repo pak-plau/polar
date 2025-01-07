@@ -6,6 +6,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import Schedule from './Schedule';
 import ClassInfo from './ClassInfo';
+import config from "../../config.js"
 
 const formatter = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
 
@@ -65,7 +66,7 @@ const Registration = () => {
 
   const fetchCartRows = async () => {
     try {
-      const response = await fetch('http://localhost:8080/getCart', {
+      const response = await fetch(`${config.serverUrl}/getCart`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -144,7 +145,7 @@ const Registration = () => {
     }
     if (selectedClass.prereq !== "") {
       try {
-        const response = await fetch("http://localhost:8080/checkPrereq", {
+        const response = await fetch(`${config.serverUrl}/checkPrereq`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -209,7 +210,7 @@ const Registration = () => {
     if (event.key === 'Enter' && searchQuery.length > 0) {
       try {
         setSearchRows([]);
-        const response = await fetch('http://localhost:8080/search', {
+        const response = await fetch(`${config.serverUrl}/search`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -242,7 +243,7 @@ const Registration = () => {
 
   const handleSaveCart = async () => {
     try {
-      const response = await fetch('http://localhost:8080/saveCart', {
+      const response = await fetch(`${config.serverUrl}/saveCart`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Box, Card, CardContent, Typography, Table, TableBody, TableRow, TableCell } from "@mui/material";
+import config from "../../config.js";
 
 const formatter = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true, timeZone: "UTC" });
 
@@ -14,7 +15,7 @@ const Home = () => {
   useEffect(() => {
     const fetchDates = async () => {
       try {
-        const enrollmentResponse = await fetch("http://localhost:8080/getEnrollmentDate", {
+        const enrollmentResponse = await fetch(`${config.serverUrl}/getEnrollmentDate`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -26,7 +27,7 @@ const Home = () => {
         }
         const enrollmentData = await enrollmentResponse.json();
         setEnrollmentDate(new Date(enrollmentData));
-        const housingResponse = await fetch("http://localhost:8080/getHousingDate", {
+        const housingResponse = await fetch(`${config.serverUrl}/getHousingDate`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

@@ -20,6 +20,7 @@ import {
   FormControl,
   TextField
 } from "@mui/material";
+import config from "../../config.js"
 
 const Records = () => {
   const [openDialog, setOpenDialog] = useState(false);
@@ -34,7 +35,7 @@ const Records = () => {
 
   const fetchUnofficialTranscript = async () => {
     try {
-      const response = await fetch("http://localhost:8080/getUnofficialTranscript", {
+      const response = await fetch(`${config.serverUrl}/getUnofficialTranscript`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -55,7 +56,7 @@ const Records = () => {
 
   const fetchGPA = async () => {
     try {
-      const response = await fetch("http://localhost:8080/getGPA", {
+      const response = await fetch(`${config.serverUrl}/getGPA`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -76,7 +77,7 @@ const Records = () => {
 
   const fetchOtherRecords = async () => {
     try {
-      const response = await fetch("http://localhost:8080/getRecords", {
+      const response = await fetch(`${config.serverUrl}/getRecords`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: id }),
@@ -116,7 +117,7 @@ const Records = () => {
     formData.append("file", file);
     formData.append("filename", selectedRecordType);
     try {
-      const response = await fetch("http://localhost:8080/putRecord", {
+      const response = await fetch(`${config.serverUrl}/putRecord`, {
         method: "PUT",
         body: formData,
       });
@@ -131,7 +132,7 @@ const Records = () => {
 
   const downloadRecord = async (filename) => {
     try {
-      const response = await fetch("http://localhost:8080/getRecord", {
+      const response = await fetch(`${config.serverUrl}/getRecord`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

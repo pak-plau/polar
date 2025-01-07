@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { TextField, Button, Box, Typography, Alert } from "@mui/material";
 import { useAuth } from "../../hooks/useAuth";
+import config from "../../config.js";
 
 const Login = () => {
   const [polarId, setPolarId] = useState("");
@@ -11,7 +12,7 @@ const Login = () => {
   const handleLogin = async () => {
     setError("");
     try {
-      const response = await fetch("http://localhost:8080/login", {
+      const response = await fetch(`${config.serverUrl}/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
