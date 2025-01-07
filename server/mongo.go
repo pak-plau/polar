@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/csv"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -13,11 +14,13 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var (
-	dbClient *mongo.Client
-	dbName   = "polarDB"
+	dbClient  *mongo.Client
+	dbName    = "polarDB"
+	noUserErr = errors.New("user not found")
 )
 
 func connectMongoDB() {
@@ -714,7 +717,7 @@ func getHousingDate(id string) (time.Time, error) {
 	return result.Housing, nil
 }
 
-func checkLogin(id string, hash string) (bool, error) {
+func checkLogin(id string, pass string) (bool, error) {
 	collection := dbClient.Database(dbName).Collection("users")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -726,7 +729,8 @@ func checkLogin(id string, hash string) (bool, error) {
 	}
 	err := collection.FindOne(ctx, filter).Decode(&result)
 	if err != nil {
-		return false, fmt.Errorf("user not found")
+		return false, noUserErr
 	}
-	return hash == result.Passhash, nil
+	err = bcrypt.CompareHashAndPassword([]byte(result.Passhash), []byte(pass))
+	return err == nil, err
 }

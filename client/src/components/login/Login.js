@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { TextField, Button, Box, Typography, Alert } from "@mui/material";
-import { sha256 } from "js-sha256";
 import { useAuth } from "../../hooks/useAuth";
 
 const Login = () => {
@@ -11,14 +10,13 @@ const Login = () => {
 
   const handleLogin = async () => {
     setError("");
-    const passhash = sha256(password);
     try {
       const response = await fetch("http://localhost:8080/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ id: polarId, passhash: passhash }),
+        body: JSON.stringify({ id: polarId, pass: password }),
       });
       if (response.status === 404) {
         setError("Polar ID does not exist");

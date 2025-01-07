@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -62,17 +63,16 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var request struct {
-		Id       string `json:"id"`
-		Passhash string `json:"passhash"`
+		Id   string `json:"id"`
+		Pass string `json:"pass"`
 	}
 	err = json.Unmarshal(body, &request)
-	fmt.Println(request)
 	if err != nil {
 		http.Error(w, "Error parsing JSON req body", http.StatusBadRequest)
 		return
 	}
-	verified, err := checkLogin(request.Id, request.Passhash)
-	if err != nil {
+	verified, err := checkLogin(request.Id, request.Pass)
+	if errors.Is(err, noUserErr) {
 		http.Error(w, "User doesn't exist", http.StatusNotFound)
 		return
 	}
