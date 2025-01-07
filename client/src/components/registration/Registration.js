@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Box, Button, Typography, TextField, Card, CardContent, CardHeader, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, }
 from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
@@ -53,10 +53,6 @@ const Registration = () => {
   const id = localStorage.getItem("user").slice(1, -1);
 
   useEffect(() => {
-    fetchCartRows();
-  }, []);
-
-  useEffect(() => {
     setHasChanges(JSON.stringify(cartRows) !== JSON.stringify(savedCart.current) || cartRows.length === 0);
   }, [cartRows]);  
 
@@ -64,7 +60,7 @@ const Registration = () => {
     setCartRows((prevRows) => prevRows.filter((row) => row.id !== id));
   };
 
-  const fetchCartRows = async () => {
+  const fetchCartRows = useCallback(async () => {
     try {
       const response = await fetch(`${config.serverUrl}/getCart`, {
         method: 'POST',
@@ -100,7 +96,11 @@ const Registration = () => {
     } catch (error) {
       console.error('Error fetching cart data:', error);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    fetchCartRows();
+  }, [fetchCartRows]);
 
   const handleAddRow = async (cid) => {
     const selectedClass = searchRows.find((row) => row.id === cid);
