@@ -256,24 +256,24 @@ func parseCSVAndInsertIntoUsers(csvFilePath string) error {
 				parts := strings.Split(value, "/")
 				month, err := strconv.Atoi(parts[0])
 				if err != nil {
-					return fmt.Errorf("Error parsing month: %v", err)
+					return fmt.Errorf("error parsing month: %v", err)
 				}
 				day, err := strconv.Atoi(parts[1])
 				if err != nil {
-					return fmt.Errorf("Error parsing day: %v", err)
+					return fmt.Errorf("error parsing day: %v", err)
 				}
 				year, err := strconv.Atoi(parts[2])
 				if err != nil {
-					return fmt.Errorf("Error parsing year: %v", err)
+					return fmt.Errorf("error parsing year: %v", err)
 				}
 				timeParts := strings.Split(parts[3], ":")
 				hour, err := strconv.Atoi(timeParts[0])
 				if err != nil {
-					return fmt.Errorf("Error parsing hour %v", err)
+					return fmt.Errorf("error parsing hour %v", err)
 				}
 				minute, err := strconv.Atoi(timeParts[1])
 				if err != nil {
-					return fmt.Errorf("Error parsing minute: %v", err)
+					return fmt.Errorf("error parsing minute: %v", err)
 				}
 				document[headers[i]] = time.Date(year, time.Month(month), day, hour, minute, 0, 0, time.UTC)
 			} else {
