@@ -72,7 +72,7 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	verified, err := checkLogin(request.Id, request.Pass)
-	if errors.Is(err, noUserErr) {
+	if errors.Is(err, errNoUser) {
 		http.Error(w, "User doesn't exist", http.StatusNotFound)
 		return
 	}

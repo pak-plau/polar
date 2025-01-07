@@ -20,7 +20,7 @@ import (
 var (
 	dbClient  *mongo.Client
 	dbName    = "polarDB"
-	noUserErr = errors.New("user not found")
+	errNoUser = errors.New("user not found")
 )
 
 func connectMongoDB() {
@@ -729,7 +729,7 @@ func checkLogin(id string, pass string) (bool, error) {
 	}
 	err := collection.FindOne(ctx, filter).Decode(&result)
 	if err != nil {
-		return false, noUserErr
+		return false, errNoUser
 	}
 	err = bcrypt.CompareHashAndPassword([]byte(result.Passhash), []byte(pass))
 	return err == nil, err
