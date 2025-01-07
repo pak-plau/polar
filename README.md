@@ -37,6 +37,7 @@ go run .
 cd client
 npm start
 ```
+If client is ran on a different machine than the server, edit the ip address of the go server (will be printed in the console running the go server) in `polar/client/src/config.js` and then run npm start
 
 ### Login information (Here are some accounts that have been set up)
 
