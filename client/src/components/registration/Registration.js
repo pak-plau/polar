@@ -57,8 +57,8 @@ const Registration = () => {
   }, []);
 
   useEffect(() => {
-    setHasChanges((cartRows) !== savedCart.current || cartRows.length === 0);
-  }, [cartRows]);
+    setHasChanges(JSON.stringify(cartRows) !== JSON.stringify(savedCart.current) || cartRows.length === 0);
+  }, [cartRows]);  
 
   const handleDeleteRow = (id) => {
     setCartRows((prevRows) => prevRows.filter((row) => row.id !== id));
@@ -102,8 +102,8 @@ const Registration = () => {
     }
   };
 
-  const handleAddRow = async (id) => {
-    const selectedClass = searchRows.find((row) => row.id === id);
+  const handleAddRow = async (cid) => {
+    const selectedClass = searchRows.find((row) => row.id === cid);
     if (!selectedClass) {
       console.error("Selected class not found.");
       return;

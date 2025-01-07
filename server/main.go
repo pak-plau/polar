@@ -267,6 +267,8 @@ func handleCheckPrereq(w http.ResponseWriter, r *http.Request) {
 	for _, req := range prereqs {
 		if strings.HasPrefix(req, "major") {
 			temp, err := checkMajors(strings.Split(req, " ")[1], request.Id)
+			fmt.Println(request.Id)
+			fmt.Println(err)
 			if err != nil {
 				http.Error(w, "Error checking major", http.StatusInternalServerError)
 				return
