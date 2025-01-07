@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -32,8 +33,25 @@ func main() {
 	mux.HandleFunc("/putRecord", handlePutRecord)
 	mux.HandleFunc("/getEnrollmentDate", handleGetEnrollmentDate)
 	mux.HandleFunc("/getHousingDate", handleGetHousingDate)
-	fmt.Println("Starting server at port 8080")
+	ip, err := getLocalIP()
+	if err != nil {
+		log.Fatalf("Error getting local IP address: %v", err)
+	}
+	fmt.Printf("Server is running at http://%s:8080\n", ip)
 	log.Fatal(http.ListenAndServe("0.0.0.0:8080", enableCORS(logRequests(mux))))
+}
+
+func getLocalIP() (string, error) {
+	addrs, err := net.InterfaceAddrs()
+	if err != nil {
+		return "", err
+	}
+	for _, addr := range addrs {
+		if ipNet, ok := addr.(*net.IPNet); ok && !ipNet.IP.IsLoopback() && ipNet.IP.To4() != nil {
+			return ipNet.IP.String(), nil
+		}
+	}
+	return "", errors.New("no valid IPv4 address found")
 }
 
 func logRequests(next http.Handler) http.Handler {
