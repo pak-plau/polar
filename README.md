@@ -6,6 +6,7 @@ A remake of SBU's Solar to have a cleaner looking site and also provide extra to
 
 - [Go](http://golang.org) 1.17 or newer
 - MongoDB
+- npm
 
 ## Installation
 
